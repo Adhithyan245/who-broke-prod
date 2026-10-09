@@ -1,11 +1,4 @@
 {
- "caveats": [
-  "Controlled simulator with scripted agents and four hand-built scenarios.",
-  "Says nothing about real engineering teams, real incidents, or real organisations.",
-  "No Phi (integrated information) was computed here; no Phi-accuracy relationship is claimed.",
-  "Agent dialogue lines are scripted templates chosen by the simulator, not model-generated text.",
-  "No LLM output is used anywhere in the attribution, scoring or results."
- ],
  "cells": [
   {
    "abstain": 0.0,
@@ -188,134 +181,100 @@
    "topology": "chain"
   }
  ],
- "hypotheses": [
-  {
-   "claim": "Trace access raises accuracy by >= 0.10 (self-protective agents)",
-   "design_note": "Measured, but partly by design: claims-only investigators cannot verify anything.",
-   "id": "H1",
-   "numbers": {
-    "acc_claims_only": 0.09666666666666666,
-    "acc_full": 0.6466666666666666,
-    "diff": 0.5499999999999999,
-    "p": 9.1438991302582e-100
-   },
+ "config": {
+  "access": [
+   "full",
+   "claims_only"
+  ],
+  "chain_drop_p": 0.15,
+  "deadline_rounds": 5,
+  "fabricate_p": 0.5,
+  "incentives": [
+   "neutral",
+   "self_protective"
+  ],
+  "scenarios": [
+   "bad_deploy",
+   "flag_flip",
+   "migration_lock",
+   "cache_stampede"
+  ],
+  "seeds": {
+   "count": 50,
+   "max": 49,
+   "min": 0
+  },
+  "topologies": [
+   "flat",
+   "hub",
+   "chain"
+  ],
+  "verification_budget": 1,
+  "witness_p": 0.35
+ },
+ "execution_timing": null,
+ "execution_timing_note": "Not measured for the saved run; no timing or failure data was recorded.",
+ "hypotheses": {
+  "H1": {
+   "acc_claims_only": 0.09666666666666666,
+   "acc_full": 0.6466666666666666,
+   "diff": 0.5499999999999999,
+   "p": 9.1438991302582e-100,
    "supported": true
   },
-  {
-   "claim": "Trace access at least halves false blame",
-   "design_note": "Measured; magnitude depends on the designer-chosen investigator rule.",
-   "id": "H2",
-   "numbers": {
-    "false_blame_claims_only": 0.83,
-    "false_blame_full": 0.3433333333333333
-   },
+  "H2": {
+   "false_blame_claims_only": 0.83,
+   "false_blame_full": 0.3433333333333333,
    "supported": true
   },
-  {
-   "claim": "Blame incentive matters only without trace access",
-   "design_note": "Refuted by a design choice: uncited claims cannot be refuted and still win the fallback vote.",
-   "id": "H3",
-   "numbers": {
-    "fb_diff_claims_only": 0.83,
-    "fb_diff_full": 0.3433333333333333
+  "H3": {
+   "fb_diff_claims_only": 0.83,
+   "fb_diff_full": 0.3433333333333333,
+   "supported": false
+  },
+  "H4": {
+   "mean_steps": {
+    "chain": 1.5,
+    "flat": 1.4838709677419355,
+    "hub": 2.0709677419354837
    },
    "supported": false
   },
-  {
-   "claim": "Rounds to answer: flat <= hub <= chain",
-   "design_note": "Refuted; chain's mean is selection-biased (averaged over successful runs only).",
-   "id": "H4",
-   "numbers": {
-    "mean_steps": {
-     "chain": 1.5,
-     "flat": 1.4838709677419355,
-     "hub": 2.0709677419354837
-    }
-   },
-   "supported": false
-  },
-  {
-   "claim": "Chain relaying costs >= 0.10 accuracy vs flat",
-   "design_note": "Measured; driven by designed citation drops (p=0.15) and relay rewrites.",
-   "id": "H5",
-   "numbers": {
-    "acc_chain": 0.39,
-    "acc_flat": 0.775,
-    "diff": 0.385,
-    "p": 1.3234889800848443e-23
-   },
+  "H5": {
+   "acc_chain": 0.39,
+   "acc_flat": 0.775,
+   "diff": 0.385,
+   "p": 1.3234889800848443e-23,
    "supported": true
   },
-  {
-   "claim": "A hub mediator gains >= 0.05 accuracy vs flat",
-   "design_note": "Refuted; the mediator's one check duplicates the investigator's first check (design).",
-   "id": "H6",
-   "numbers": {
-    "acc_flat": 0.775,
-    "acc_hub": 0.775,
-    "diff": 0.0,
-    "p": 1.0
-   },
+  "H6": {
+   "acc_flat": 0.775,
+   "acc_hub": 0.775,
+   "diff": 0.0,
+   "p": 1.0,
    "supported": false
   }
- ],
- "metrics": [
-  {
-   "definition": "Final attribution (round 5) names the culprit.",
-   "denominator": "All runs in the cell (n=200 per cell).",
-   "name": "Accuracy",
-   "status": "computed"
-  },
-  {
-   "definition": "Final attribution names an agent other than the culprit.",
-   "denominator": "All runs in the cell.",
-   "name": "False-blame rate",
-   "status": "computed"
-  },
-  {
-   "definition": "Final attribution is empty (tie or no usable claims).",
-   "denominator": "All runs in the cell.",
-   "name": "Abstain rate",
-   "status": "computed"
-  },
-  {
-   "definition": "First round from which the attribution stays on the culprit through round 5.",
-   "denominator": "Only runs that reach a stable correct attribution (selection-biased).",
-   "name": "Steps to attribution",
-   "status": "computed"
-  },
-  {
-   "definition": "Claim deliveries counted by the topology, including relays and mediator forwards.",
-   "denominator": "Mean over all runs in the cell.",
-   "name": "Messages",
-   "status": "computed"
-  },
-  {
-   "definition": "Score interval for the accuracy proportion.",
-   "denominator": "Cell n.",
-   "name": "Wilson 95% interval",
-   "status": "computed"
-  },
-  {
-   "definition": "Exact two-sided test on paired (scenario, seed) units that differ between conditions.",
-   "denominator": "Discordant pairs only.",
-   "name": "Sign test p",
-   "status": "computed"
-  },
-  {
-   "definition": "Not represented in the simulator.",
-   "denominator": "-",
-   "name": "Agent confidence",
-   "status": "not modelled"
-  },
-  {
-   "definition": "UI framing for readability.",
-   "denominator": "-",
-   "name": "SEV-1 label, clock styling, corrective actions",
-   "status": "illustrative"
-  }
- ],
- "n_runs": 2400,
+ },
+ "integrity": {
+  "checks": [
+   "columns",
+   "row_count",
+   "row_values",
+   "grid_membership",
+   "duplicates",
+   "coverage",
+   "summary_structure",
+   "sample_count",
+   "aggregate_metrics"
+  ],
+  "error_count": 0,
+  "errors": [],
+  "errors_truncated": false,
+  "expected_runs": 2400,
+  "ok": true,
+  "rows_read": 2400,
+  "valid_unique_runs": 2400
+ },
  "per_scenario": [
   {
    "abstain": 0.0,
@@ -942,6 +901,11 @@
    "topology": "chain"
   }
  ],
+ "raw_results": {
+  "repo": "https://github.com/Adhithyan245/who-broke-prod/tree/master/results",
+  "runs_csv": "results/runs.csv",
+  "summary_json": "results/summary.json"
+ },
  "reproducibility": {
   "fingerprints_sha256": {
    "HYPOTHESES.md": "c8c9adacdf0244b4dbf5755ba7cad0108b07e83ec89d03852890341d96842e97",
@@ -968,5 +932,6 @@
   ],
   "summary_matches_runs": true
  },
- "source": "results/summary.json and results/runs.csv (preregistered run, read-only)"
+ "run_count": 2400,
+ "source": "saved preregistered run (read-only; not rerun by this export)"
 }

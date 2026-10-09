@@ -13,34 +13,202 @@
   "neutral",
   "self_protective"
  ],
+ "reasons": {
+  "abstain_no_claims": "No usable accusation reached the investigator, so it abstained.",
+  "abstain_tie": "Accusations among unrefuted claims were tied, so the investigator abstained.",
+  "plurality_unrefuted": "No accusation was verified, so the investigator took the most frequent accusation among claims not refuted.",
+  "supported_evidence": "A cited log entry was checked against the trace and supports the accusation."
+ },
  "scenarios": [
   {
    "id": "bad_deploy",
+   "service": "checkout",
    "title": "Checkout 500s after Friday deploy"
   },
   {
    "id": "flag_flip",
+   "service": "auth",
    "title": "Auth logins rejected after flag flip"
   },
   {
    "id": "migration_lock",
+   "service": "payments",
    "title": "Payments timeouts during migration"
   },
   {
    "id": "cache_stampede",
+   "service": "search",
    "title": "Search meltdown after cache purge"
   }
  ],
  "topologies": [
   {
+   "graph": {
+    "edges": [
+     [
+      "DeployBot",
+      "Investigator"
+     ],
+     [
+      "ConfigBot",
+      "Investigator"
+     ],
+     [
+      "AutoScaler",
+      "Investigator"
+     ],
+     [
+      "DBMigrator",
+      "Investigator"
+     ],
+     [
+      "CacheBot",
+      "Investigator"
+     ]
+    ],
+    "nodes": [
+     {
+      "id": "DeployBot",
+      "kind": "agent"
+     },
+     {
+      "id": "ConfigBot",
+      "kind": "agent"
+     },
+     {
+      "id": "AutoScaler",
+      "kind": "agent"
+     },
+     {
+      "id": "DBMigrator",
+      "kind": "agent"
+     },
+     {
+      "id": "CacheBot",
+      "kind": "agent"
+     },
+     {
+      "id": "Investigator",
+      "kind": "investigator"
+     }
+    ]
+   },
    "id": "flat",
    "note": "Every agent reports straight to the investigator in round 1."
   },
   {
+   "graph": {
+    "edges": [
+     [
+      "DeployBot",
+      "IncidentCommander"
+     ],
+     [
+      "ConfigBot",
+      "IncidentCommander"
+     ],
+     [
+      "AutoScaler",
+      "IncidentCommander"
+     ],
+     [
+      "DBMigrator",
+      "IncidentCommander"
+     ],
+     [
+      "CacheBot",
+      "IncidentCommander"
+     ],
+     [
+      "IncidentCommander",
+      "Investigator"
+     ]
+    ],
+    "nodes": [
+     {
+      "id": "DeployBot",
+      "kind": "agent"
+     },
+     {
+      "id": "ConfigBot",
+      "kind": "agent"
+     },
+     {
+      "id": "AutoScaler",
+      "kind": "agent"
+     },
+     {
+      "id": "DBMigrator",
+      "kind": "agent"
+     },
+     {
+      "id": "CacheBot",
+      "kind": "agent"
+     },
+     {
+      "id": "Investigator",
+      "kind": "investigator"
+     },
+     {
+      "id": "IncidentCommander",
+      "kind": "mediator"
+     }
+    ]
+   },
    "id": "hub",
    "note": "Agents report to an IncidentCommander, which spends one trace check on the most-repeated cited claim, drops it if refuted, and forwards the rest in round 2."
   },
   {
+   "graph": {
+    "edges": [
+     [
+      "DeployBot",
+      "ConfigBot"
+     ],
+     [
+      "ConfigBot",
+      "AutoScaler"
+     ],
+     [
+      "AutoScaler",
+      "DBMigrator"
+     ],
+     [
+      "DBMigrator",
+      "CacheBot"
+     ],
+     [
+      "CacheBot",
+      "Investigator"
+     ]
+    ],
+    "nodes": [
+     {
+      "id": "DeployBot",
+      "kind": "agent"
+     },
+     {
+      "id": "ConfigBot",
+      "kind": "agent"
+     },
+     {
+      "id": "AutoScaler",
+      "kind": "agent"
+     },
+     {
+      "id": "DBMigrator",
+      "kind": "agent"
+     },
+     {
+      "id": "CacheBot",
+      "kind": "agent"
+     },
+     {
+      "id": "Investigator",
+      "kind": "investigator"
+     }
+    ]
+   },
    "id": "chain",
    "note": "Claims pass agent to agent, one hop per round. Hops can drop citations; an accused self-protective relay rewrites the accusation."
   }

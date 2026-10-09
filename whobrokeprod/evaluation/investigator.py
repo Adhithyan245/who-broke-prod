@@ -25,9 +25,22 @@ def _plurality(names: list[str]) -> str | None:
     return ranked[0][0]
 
 
+def decide(received: list, status: dict) -> tuple[str | None, str]:
+    """Attribution rule. Returns (attribution, reason code)."""
+    supported = [c.accused for c in received if status.get(c.key()) == "supported"]
+    if supported:
+        return Counter(supported).most_common(1)[0][0], "supported_evidence"
+    pool = [c.accused for c in received if status.get(c.key()) != "refuted"]
+    if not pool:
+        return None, "abstain_no_claims"
+    att = _plurality(pool)
+    return att, ("plurality_unrefuted" if att else "abstain_tie")
+
+
 def investigate(inbox: dict, scenario: Scenario, access: bool, deadline: int = DEADLINE,
-                budget: int = BUDGET):
-    received, status, attributions, log = [], {}, [], []
+                budget: int = BUDGET, explain: bool = False):
+    """Returns (attributions, check_log), or (attributions, check_log, reasons) when explain=True."""
+    received, status, attributions, log, reasons = [], {}, [], [], []
     for r in range(1, deadline + 1):
         received += [c for c in inbox.get(r, []) if c.accused is not None]
         if access:
@@ -36,13 +49,10 @@ def investigate(inbox: dict, scenario: Scenario, access: bool, deadline: int = D
             for k in pending[:budget]:
                 status[k] = "supported" if scenario.supports(*k) else "refuted"
                 log.append((r, k, status[k]))
-        supported = [c.accused for c in received if status.get(c.key()) == "supported"]
-        if supported:
-            att = Counter(supported).most_common(1)[0][0]
-        else:
-            att = _plurality([c.accused for c in received if status.get(c.key()) != "refuted"])
+        att, why = decide(received, status)
         attributions.append(att)
-    return attributions, log
+        reasons.append(why)
+    return (attributions, log, reasons) if explain else (attributions, log)
 
 
 def score(attributions: list, culprit: str) -> dict:

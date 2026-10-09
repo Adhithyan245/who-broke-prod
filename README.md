@@ -1,141 +1,162 @@
 # WHO BROKE PROD?
 
-A deterministic multi-agent incident-investigation simulation. Five rule-based agents (DeployBot,
-ConfigBot, AutoScaler, DBMigrator, CacheBot) are asked who caused a simulated outage. Most of them blame
-someone else. An investigator reconstructs the root cause from their claims and, when allowed, from the
-ground-truth event trace. The comedy is in the transcript; the measurement is in the scoring.
+**Live demo (static, offline mode):** https://adhithyan245.github.io/who-broke-prod-demo/
 
-Simulation only. No real systems, customer data, network calls (by default) or destructive actions.
+## 1. Project purpose and key capabilities
 
-## Research question
+A deterministic multi-agent incident-investigation simulator. Five rule-based agents (DeployBot, ConfigBot,
+AutoScaler, DBMigrator, CacheBot) are asked who caused a simulated outage; most blame someone else. An
+investigator reconstructs the root cause from their claims and, when allowed, by checking cited entries
+against the event trace. The comedy is in the transcript; the measurement is in the scoring.
 
-In a fixed, seeded incident simulation, how do coordination topology (flat, hub-mediator, chain), the
-agents' blame incentive (neutral, self-protective) and the investigator's trace access (full trace
-verification, claims only) affect root-cause attribution accuracy, false-blame rate and rounds to a
-stable correct attribution?
+It is a simulation only: no real systems, customer data or destructive actions, and no network calls by
+default.
 
-Hypotheses H1-H6 with decision rules are in [`HYPOTHESES.md`](HYPOTHESES.md), committed before any run
-(see `git log`). In brief:
+Capabilities (all exercised by the test suite or the commands below):
 
-- **H1** trace access raises accuracy by >= 0.10 under self-protective incentive.
-- **H2** trace access at least halves false blame (converting it to abstention).
-- **H3** self-protective incentive raises false blame by >= 0.10 under claims-only, but <= 0.05 with access.
-- **H4** latency ordering flat <= hub <= chain in mean steps-to-attribution.
-- **H5** chain relay distortion costs >= 0.10 accuracy versus flat (competes with H6).
-- **H6** a verifying hub mediator gains >= 0.05 accuracy over flat.
+- 4 fixed scenarios (`bad_deploy`, `flag_flip`, `migration_lock`, `cache_stampede`) × 3 topologies
+  (`flat`, `hub` with an IncidentCommander, `chain` relay) × 2 incentives × 2 evidence-access levels, all
+  seeded and reproducible.
+- A preregistered 2,400-run experiment (`HYPOTHESES.md`, `results/`) with Wilson intervals and paired sign tests.
+- A stdlib HTTP API with a staged reveal (case → investigate → verdict), `/healthz`, one JSON error shape,
+  request ids and structured JSON logs.
+- A vanilla HTML/CSS/JS web app: incident workspace, SVG topology, agent profiles, evidence timeline,
+  investigation trace (including EVIDENCE NOT FOUND), verdict with the investigator's actual decision
+  reason, evaluation lab and methodology. It runs live against the API or offline from a static bundle.
+- A read-only evaluation export (JSON/CSV) with SHA-256 fingerprints of the saved results.
+- A terminal demo CLI. Optional Grok narration is off by default, never used in tests or scoring, and its
+  output is never authoritative.
 
-## Design
+## 2. Screenshot / visual preview
 
-| | |
+![Incident workspace, topology, trace and verdict (headless Chrome, live mode, bad_deploy/hub autoplay)](docs/screenshot.png)
+
+## 3. Architecture and component responsibilities
+
+The layers are separated as `simulation` → `agents` → `orchestration` → `evaluation` → `presentation`. The
+browser only renders: every claim, check, attribution, reason and verdict is computed in Python. See
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the mermaid diagram.
+
+| Component | Responsibility |
 |---|---|
-| Independent variables | topology {flat, hub, chain}; incentive {neutral, self_protective}; access {full, claims_only} |
-| Dependent variables | accuracy (final attribution = culprit); false-blame rate (final = an innocent agent); abstain rate; steps-to-attribution (first round from which attribution stays correct to the deadline); messages |
-| Controls | 4 fixed scenarios with fixed traces; fixed agent roster; fixed parameters (witness p 0.35, fabricate p 0.5, chain drop p 0.15, budget 1 check/round, deadline 5); common random numbers across cells |
-| Repetitions | seeds 0..49 x 4 scenarios = 200 paired units per cell, 12 cells, 2400 runs |
-| Analysis | Wilson 95% intervals; paired exact two-sided sign test on discordant pairs; alpha 0.01; decision rules fixed in HYPOTHESES.md |
+| `simulation/scenarios.py` | fixed incidents and ground-truth event trace; trace-only support check |
+| `agents/rule_agents.py` | deterministic claims: confess / deflect / witness / scapegoat / shrug |
+| `agents/grok_narrator.py` | optional postmortem narration (CLI `--grok` + `XAI_API_KEY` only) |
+| `orchestration/topologies.py` | message delivery: flat, hub (verifying mediator), chain (relay with distortion) |
+| `evaluation/investigator.py` | budgeted verification, decision reasons, scoring |
+| `evaluation/experiment.py`, `stats.py` | preregistered grid, H1–H6 decision rules, Wilson CI, sign test |
+| `evaluation/export.py` | read-only export of `results/` with fingerprints |
+| `contracts.py`, `config.py` | typed request/response dataclasses; environment configuration |
+| `presentation/replay.py` | staged reveal payloads and presentation copy |
+| `presentation/server.py` | HTTP API, static files, JSON logs, request ids |
+| `presentation/build_static.py` | offline bundle `web/data` (`--check` detects staleness) |
+| `presentation/cli.py` | `demo`, `experiment`, `export` |
+| `web/` | frontend + offline bundle |
 
-## Layout
+## 4. Quick start
 
-```
-whobrokeprod/
-  simulation/scenarios.py      fixed seeded incidents + ground-truth trace; trace-only support check
-  agents/rule_agents.py        deterministic agents: confess / deflect / witness / scapegoat / shrug
-  agents/grok_narrator.py      optional Grok postmortem narration (off unless --grok and XAI_API_KEY)
-  orchestration/topologies.py  flat, hub (IncidentCommander), chain (relay with distortion)
-  evaluation/investigator.py   verification-budgeted investigator + scoring
-  evaluation/stats.py          Wilson interval, exact sign test (stdlib)
-  evaluation/experiment.py     the preregistered grid and H1-H6 decision rules
-  presentation/cli.py          `demo` and `experiment` commands
-tests/                         deterministic pytest suites (no network)
-web/                           static frontend + offline bundle (web/data)
-HYPOTHESES.md                  preregistration
-results/                       runs.csv, summary.json (written by `experiment`)
-```
-
-## Run
+Requires Python 3.11+. The runtime is stdlib-only; pytest and ruff are dev tools.
 
 ```bash
-uv venv -p 3.11 .venv && uv pip install -p .venv/bin/python pytest   # stdlib-only otherwise
-.venv/bin/python -m pytest -q
+uv venv -p 3.11 .venv
+uv pip install -p .venv/bin/python -e ".[dev]"      # or: python3.11 -m pip install -e ".[dev]"
+.venv/bin/python -m pytest -q                       # 99 passed
+.venv/bin/ruff check .                              # All checks passed!
 .venv/bin/python -m whobrokeprod demo --scenario bad_deploy --topology chain --seed 3
-.venv/bin/python -m whobrokeprod experiment --out results
-# optional, costs an API call, never used for attribution or experiments:
-XAI_API_KEY=... .venv/bin/python -m whobrokeprod demo --grok
+WBP_PORT=8000 .venv/bin/python -m whobrokeprod.presentation.server   # http://127.0.0.1:8000 (live mode)
+python3 -m http.server -d web 8001                  # http://127.0.0.1:8001 (offline mode, no API)
 ```
 
-## Web demo
+Container (live API mode): a `Dockerfile` is provided (stdlib-only, runs as `nobody`, `HEALTHCHECK` on
+`/healthz`, honours `PORT`). **Docker is untested:** no Docker engine was available, so the image has not
+been built. The intended usage is `docker build -t who-broke-prod . && docker run --rm -p 8000:8000 who-broke-prod`.
 
-A visualisation layer over the same simulator. JavaScript only renders; all claims, checks,
-attributions and verdicts come from `whobrokeprod` (`presentation/replay.py`).
+## 5. Deterministic demo walkthrough (judge sequence)
 
-```bash
-.venv/bin/python -m whobrokeprod.presentation.server --port 8000   # live mode: http://127.0.0.1:8000
-.venv/bin/python -m whobrokeprod.presentation.build_static          # rebuild web/data (offline bundle)
-python3 -m http.server -d web 8001                                  # offline/static mode, no Python API
-```
+With the live server running on port 8000:
 
-- Endpoints: `/api/meta`, `/api/case`, `/api/investigate`, `/api/verdict` with
-  `scenario`, `topology` and optional `seed` (0..10000), `incentive`, `access`. Bad input returns HTTP 400
-  JSON. The UI uses the defaults (self-protective, full access, seed 7). `?autoplay=1` runs the whole sequence.
-- Reveal stages: `case` (incident, agents, log, claims, stances hidden) -> `investigate` (the
-  investigator's checks and per-claim evidence status) -> `verdict` (culprit, root cause, correctness).
-  Tests check that no ground-truth field appears before the verdict.
-- Offline mode: if `/api/meta` is unreachable the page loads `web/data/` (4 scenarios x 3 topologies).
-  **Limitation:** on a static host, `data/verdicts/*.json` are public URLs, so anyone can open a verdict early.
-  The claim lines are the simulator's scripted templates. SEV-1 framing, clock styling and corrective actions
-  are presentation copy and are labelled as such. The research lab reads `results/summary.json` (via
-  `web/data/research.json`) and does not rerun the experiment.
-- Deploy: `web/` is a self-contained static site (GitHub Pages, Netlify, etc.). `Dockerfile` runs live
-  mode on a container host (`PORT` env). No credentials are needed; the Grok narrator is not wired to the web.
+1. `curl -s localhost:8000/healthz` → `{"status": "ok", "version": "0.2.0", ...}`
+2. Open `http://127.0.0.1:8000/?scenario=bad_deploy&topology=flat`, press **INVESTIGATE INCIDENT**, then
+   **REVEAL VERDICT**. The verdict's *Why* line is the investigator's real decision reason.
+3. Open `http://127.0.0.1:8000/?scenario=bad_deploy&topology=chain&autoplay=1`. Relayed claims are altered
+   in transit, citations to non-existent log entries are marked **EVIDENCE NOT FOUND**, and the
+   investigator blames an innocent agent. In the terminal,
+   `.venv/bin/python -m whobrokeprod demo --scenario bad_deploy --topology chain --seed 3` ends with
+   `VERDICT: investigator named AutoScaler -> WRONG - innocent agent blamed`.
+4. In **Evaluation lab**, toggle *full trace access* ↔ *claims only* to compare the scenario × topology
+   matrix. These figures come from the saved results; nothing is rerun.
+5. `curl -s "localhost:8000/api/case?scenario=nope&topology=hub"` → HTTP 400,
+   `{"error": {"code": "invalid_parameter", ..., "field": "scenario"}, "request_id": "..."}`
+6. `curl -s "localhost:8000/api/export?format=csv" | head -3` and
+   `.venv/bin/python -m whobrokeprod export --format json | grep -E 'run_count|summary_matches_runs'`
+   → `"run_count": 2400`, `"summary_matches_runs": true`.
+7. Offline: `python3 -m http.server -d web 8001`; the badge reads *OFFLINE · static bundle*.
 
-## Where Grok fits
+The same parameters always give the same `replay_hash` shown in the workspace header. No credentials are needed.
 
-Attribution, agents and scoring are deterministic so that results reproduce. Grok is used only to turn
-a computed verdict into a readable postmortem paragraph in the demo. A natural follow-up is a separate,
-preregistered arm where LLM agents replace the rule-based agents, run at temperature 0 with logged
-outputs; the lab's own `org_frontier/llm_variance/` warns that N model responses are not N independent
-observations, which that arm would need to account for.
+## 6. API usage and configuration
 
-## Limitations
+The full reference is in [docs/API.md](docs/API.md).
 
-- Evidence about this simulator only. Nothing here measures real incident response, real engineers, or
-  real organisations, and no result should be read as generalising to production environments.
-- Several effects are partly built in (for example, claims-only investigators cannot verify anything).
-  The experiment checks whether the specified mechanisms produce effects of the stated size.
-- The investigator's decision rule (support > plurality of non-refuted claims > abstain on ties) and all
-  parameters were chosen by the designer; other reasonable choices may change results.
-- Agent behaviour is scripted; there is no learning, persuasion or LLM variance.
-- Association across designed conditions only, on 4 hand-built scenarios.
+| Endpoint | Returns |
+|---|---|
+| `GET /healthz` | status and checks for `web/index.html` and `results/summary.json` |
+| `GET /api/meta` | scenarios, topologies (note + graph), defaults, decision-reason texts |
+| `GET /api/case` · `/api/investigate` · `/api/verdict` | staged replay; `scenario`, `topology` required; `incentive`, `access`, `seed` (0–10000) optional; unknown parameters → 400 |
+| `GET /api/export?format=json\|csv` | read-only evaluation export (503 `results_unavailable` if results are missing, 503 `results_invalid` if unreadable; integrity status in `integrity`) |
 
-## Relation to algorithmacy-lab, and follow-up for integration
+Errors use the shape `{"error": {"code", "message", "field"?}, "request_id"}`. Send `X-Request-ID`
+(`[A-Za-z0-9._-]{1,64}`) to have it echoed in the response; otherwise the server generates one. Each request
+writes one JSON log line to stderr.
 
-This prototype lives outside the lab and does not modify its exact-Φ instrument. It does **not** compute
-Φ, and its accuracy numbers are not Φ results. The lab's closest existing work is the AI/multi-agent arc
-(`org_frontier/AI_MULTIAGENT_ARC.md`, probe #88 `org_frontier/probes/probe_mas.py`, studies
-`agent_protocol_triad/` and `hitl_rubber_stamp/`), which shows on small Boolean models that a protocol or
-mediator joins the irreducible core only when it both *commits* a determination and is *read* by the
-parties (COMMIT_READ); relay and broadcast protocols read dyadic.
+| Environment variable | Default | Purpose |
+|---|---|---|
+| `WBP_HOST` | `127.0.0.1` | bind address (`0.0.0.0` in containers) |
+| `WBP_PORT` / `PORT` | `8000` | port; `WBP_PORT` wins; integer 0–65535 |
+| `WBP_LOG_LEVEL` | `INFO` | `DEBUG` / `INFO` / `WARNING` / `ERROR` |
+| `WBP_WEB_DIR` | `<repo>/web` | static files |
+| `WBP_RESULTS_DIR` | `<repo>/results` | saved results for the export |
+| `XAI_API_KEY` | unset | only for CLI `demo --grok`; never read by the server, tests or experiment |
 
-Smallest defensible integration (a separate PR into `contrib`, not done here):
+## 7. Testing and reproducibility
 
-1. Add `org_frontier/studies/incident_topology_phi/` (README.md, hypotheses.md committed first,
-   analyze_*.py, FINDINGS.md, results/), following the existing study layout.
-2. Encode each topology's *coordination step* as a 3-6 node Boolean form, for example flat =
-   independent reporters, hub-convey = mediator copies reports, hub-commit = mediator's next state is a
-   joint function of reports that agents then read, chain = relay. Compute the verdict and major complex
-   with `org_frontier.probes.lib.verdict` / `major_complex` after the instrument control
-   (`python -m org_frontier.classifier.validate`).
-3. Pre-register whether Φ-triadic topologies coincide with higher simulated attribution accuracy, and
-   report a null if they do not. Register printed numbers in `ci/reproduce.json`, run
-   `python ci/reproduce.py`, and the three `--check` index generators.
-4. State the validation gap: evidence about models, not organisations.
+- `.venv/bin/python -m pytest -q` runs 99 deterministic tests with no network access and no Grok calls. They
+  cover simulator invariants, the H1–H6 decision rules, the staged reveal and no-ground-truth-leak checks,
+  API validation and error shape, `/healthz`, the export (JSON, CSV, 503 when results are missing),
+  export integrity on temporary copies of the results (missing, duplicate and unexpected runs, malformed rows
+  and columns, metric and sample-count mismatches, inconsistent summary structure),
+  request-id echo and JSON logs, config parsing, CLI export, and bundle freshness.
+- **Regression check:** seeds 0–4 of all 48 cells (240 runs) are rerun and compared with the saved `results/runs.csv`.
+- `.venv/bin/python -m whobrokeprod.presentation.build_static --check` exits 1 if `web/data` is stale.
+- The export re-derives `summary.json` cells from `runs.csv` and fingerprints both files and `HYPOTHESES.md`
+  (SHA-256), with links to the preregistration commits. Execution time was not measured for the saved run
+  and is reported as `null`.
+- The full grid regenerates with `.venv/bin/python -m whobrokeprod experiment --out <dir>`. It was not
+  rerun during the platform upgrade (only the 240-run sample), so write to a separate directory to compare.
+- **CI:** `.github/workflows/ci.yml` runs ruff, pytest and the bundle check on Python 3.11. Run
+  For commit `5577196`, CI run
+  [37958750366](https://github.com/Adhithyan245/who-broke-prod/actions/runs/37958750366) (push) succeeded,
+  and its log shows "All checks passed!" (ruff), "99 passed" (pytest) and "bundle is current".
 
-The lab's CI uses Python 3.12 and PyPhi needs 3.10+; this prototype targets 3.11 and is stdlib-only, so
-it runs under either.
+## 8. Evaluation metrics and limitations
 
-## Results of the preregistered run (2400 runs, `results/summary.json`)
+The preregistered design (`HYPOTHESES.md`, committed before any run):
 
-Self-protective cells (neutral cells are all accuracy 1.000, since the culprit confesses):
+- **Variables:** topology × incentive × access.
+- **Controls:** 4 fixed scenarios and fixed parameters (witness p 0.35, fabricate p 0.5, chain drop p 0.15,
+  1 check per round, 5-round deadline), with common random numbers across cells.
+- **Sample:** 50 seeds × 4 scenarios = 200 paired units per cell; 12 cells; 2,400 runs.
+- **Analysis:** Wilson 95% intervals and an exact paired sign test, α = 0.01.
+
+| Metric | Definition | Denominator |
+|---|---|---|
+| Accuracy | the round-5 attribution names the culprit | all runs in the cell |
+| False blame | the round-5 attribution names an innocent agent | all runs in the cell |
+| Abstain | no attribution at round 5 | all runs in the cell |
+| Steps to attribution | first round from which attribution stays correct | successful runs only (selection-biased) |
+| Messages | messages delivered to the investigator | all runs in the cell |
+
+Self-protective cells from `results/summary.json`. Every neutral cell has accuracy 1.000 because the culprit confesses:
 
 | topology | access | accuracy [95% CI] | false blame | abstain | mean steps |
 |---|---|---|---:|---:|---:|
@@ -146,13 +167,57 @@ Self-protective cells (neutral cells are all accuracy 1.000, since the culprit c
 | chain | full | 0.390 [0.325, 0.459] | 0.580 | 0.030 | 1.50 |
 | chain | claims_only | 0.030 [0.014, 0.064] | 0.970 | 0.000 | 1.33 |
 
-- H1 supported (accuracy 0.647 vs 0.097, diff 0.55, sign test p ~ 9e-100).
-- H2 supported (false blame 0.343 vs 0.830).
-- H3 refuted: the incentive raises false blame under full access too (+0.343, threshold 0.05). Cause in
-  this design: claims citing no event cannot be refuted, and the investigator falls back to a plurality
-  over them once cited scapegoat claims are refuted.
-- H4 refuted: chain (1.50) beat hub (2.07) on mean steps. Steps are averaged over successful runs only,
-  so chain's mean is selection-biased toward runs where a nearby witness reported early.
-- H5 supported (flat 0.775 vs chain 0.390, p ~ 1e-23).
-- H6 refuted: hub accuracy equals flat (diff 0, p = 1). The mediator's single check duplicates the check
-  the investigator makes first anyway, so it adds a round and no accuracy.
+Hypothesis outcomes:
+
+- **H1 supported:** trace access raises accuracy (0.647 vs 0.097).
+- **H2 supported:** trace access lowers false blame (0.343 vs 0.830).
+- **H3 refuted:** the self-protective incentive also raises false blame under full access, because
+  uncited claims cannot be refuted.
+- **H4 refuted:** chain was faster than hub on mean steps, a selection-biased mean.
+- **H5 supported:** chain relay costs accuracy (flat 0.775 vs chain 0.390).
+- **H6 refuted:** hub accuracy equals flat, because the mediator's check duplicates the investigator's.
+
+Limitations:
+
+- This is evidence about this simulator only. It says nothing about real incident response, engineers or
+  organisations.
+- Several effects are partly built in; for example, a claims-only investigator cannot verify anything.
+- The parameters and the decision rule (support > plurality of unrefuted claims > abstain on ties) were
+  chosen by the designer.
+- Agent lines are scripted templates. There is no learning, persuasion or LLM variance.
+- The results cover 4 hand-built scenarios and show association across designed conditions only.
+- In the web app, SEV framing and corrective actions are labelled presentation copy, and dialogue is
+  labelled simulated.
+
+## 9. Security considerations
+
+- **No credentials anywhere in the repository.** The only secret the code knows about is `XAI_API_KEY`,
+  read from the environment by the optional CLI narrator. It is off by default and never used by the
+  server, tests or experiment.
+- **Read-only endpoints.** All endpoints are unauthenticated `GET`/`HEAD`, nothing writes to disk, and
+  replay parameters are validated against allow-lists with bounded seeds. Unknown parameters are rejected.
+- **No leaked internals.** Unexpected exceptions return a generic `internal_error` and are logged with the
+  request id; tracebacks are never sent to clients. Client-supplied request ids are pattern-checked before
+  being echoed or logged.
+- **Security headers.** Responses set `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer`.
+  There is no Content-Security-Policy yet.
+- **Container user.** The container runs as `nobody` with no package installs.
+- **Public verdicts on static hosts.** On a static host the verdict files (`web/data/verdicts/*.json`) are
+  public, so the reveal can be skipped. This leaks the game, not data: everything is synthetic.
+- **No rate limiting or TLS.** Put the server behind a reverse proxy before exposing it publicly.
+
+## 10. Research-study links, and product vs research
+
+- **Research:** the preregistered experiment is packaged as an algorithmacy-lab study in
+  [PR #809](https://github.com/rogerSuperBuilderAlpha/algorithmacy-lab/pull/809), from the fork branch
+  [Adhithyan245/algorithmacy-lab@study/who-broke-prod](https://github.com/Adhithyan245/algorithmacy-lab/tree/study/who-broke-prod):
+  - [`org_frontier/studies/who_broke_prod/`](https://github.com/Adhithyan245/algorithmacy-lab/tree/study/who-broke-prod/org_frontier/studies/who_broke_prod):
+    hypotheses, analysis of the saved 2,400 runs, FINDINGS.
+  - [`org_frontier/studies/who_broke_prod_phi/`](https://github.com/Adhithyan245/algorithmacy-lab/tree/study/who-broke-prod/org_frontier/studies/who_broke_prod_phi):
+    a separate, preregistered exact-Φ (IIT 4.0) study of small Boolean models of each topology's
+    coordination step. Φ is evidence about those models, not about real organisations, and is not
+    derived from the accuracy numbers here.
+- **Product:** this repository (API, web app, export, CI, container) is a presentation and engineering
+  layer over the same deterministic simulator. It adds no findings. `HYPOTHESES.md` and `results/` are the
+  preregistered artefacts and are unchanged by the platform work. Numbers in the UI's evaluation lab are
+  read from those saved results, and everything else in the UI is labelled simulated or presentation copy.

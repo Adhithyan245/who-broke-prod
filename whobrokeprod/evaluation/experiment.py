@@ -70,7 +70,8 @@ def evaluate(rows) -> dict:
     cell = {t: _sel(rows, topology=t, access="full", **sp) for t in TOPOLOGIES}
     steps = {t: (mean([r["steps"] for r in cell[t] if r["steps"] is not None])
                  if any(r["steps"] is not None for r in cell[t]) else None) for t in TOPOLOGIES}
-    ok4 = None not in steps.values() and steps["flat"] <= steps["hub"] <= steps["chain"] and steps["flat"] < steps["chain"]
+    ok4 = (None not in steps.values() and steps["flat"] <= steps["hub"] <= steps["chain"]
+           and steps["flat"] < steps["chain"])
     res["H4"] = {"mean_steps": steps, "supported": bool(ok4)}
     acc = {t: _rate(cell[t], "correct") for t in TOPOLOGIES}
     _, _, p5 = sign_test([r["correct"] for r in cell["flat"]], [r["correct"] for r in cell["chain"]])
