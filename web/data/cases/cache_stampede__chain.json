@@ -3,23 +3,28 @@
   "agents": [
    {
     "name": "DeployBot",
-    "role": "deploy"
+    "role": "deploy",
+    "role_text": "Ships application releases"
    },
    {
     "name": "ConfigBot",
-    "role": "config_change"
+    "role": "config_change",
+    "role_text": "Flips feature flags and settings"
    },
    {
     "name": "AutoScaler",
-    "role": "scale"
+    "role": "scale",
+    "role_text": "Adds and removes capacity"
    },
    {
     "name": "DBMigrator",
-    "role": "migration"
+    "role": "migration",
+    "role_text": "Runs database schema migrations"
    },
    {
     "name": "CacheBot",
-    "role": "cache_flush"
+    "role": "cache_flush",
+    "role_text": "Purges and expires caches"
    }
   ],
   "claims": [
@@ -61,6 +66,56 @@
   ],
   "confidence": null,
   "confidence_note": "The simulator does not model agent confidence.",
+  "graph": {
+   "edges": [
+    [
+     "DeployBot",
+     "ConfigBot"
+    ],
+    [
+     "ConfigBot",
+     "AutoScaler"
+    ],
+    [
+     "AutoScaler",
+     "DBMigrator"
+    ],
+    [
+     "DBMigrator",
+     "CacheBot"
+    ],
+    [
+     "CacheBot",
+     "Investigator"
+    ]
+   ],
+   "nodes": [
+    {
+     "id": "DeployBot",
+     "kind": "agent"
+    },
+    {
+     "id": "ConfigBot",
+     "kind": "agent"
+    },
+    {
+     "id": "AutoScaler",
+     "kind": "agent"
+    },
+    {
+     "id": "DBMigrator",
+     "kind": "agent"
+    },
+    {
+     "id": "CacheBot",
+     "kind": "agent"
+    },
+    {
+     "id": "Investigator",
+     "kind": "investigator"
+    }
+   ]
+  },
   "incident": {
    "first_alert_t": 39,
    "service": "search",
@@ -68,6 +123,7 @@
    "severity_is_presentation_copy": true,
    "title": "Search meltdown after cache purge"
   },
+  "lines_are_scripted_templates": true,
   "log": [
    {
     "actor": "DeployBot",
@@ -167,7 +223,7 @@
    "topology": "chain"
   },
   "relays": [],
-  "replay_hash": "2c762dc10c4f65c6",
+  "replay_hash": "e94b95b87844d036",
   "transcript": [
    {
     "round": 1,
@@ -211,22 +267,27 @@
   "attributions": [
    {
     "attribution": null,
+    "reason": "abstain_no_claims",
     "round": 1
    },
    {
     "attribution": null,
+    "reason": "abstain_no_claims",
     "round": 2
    },
    {
     "attribution": null,
+    "reason": "abstain_no_claims",
     "round": 3
    },
    {
     "attribution": "ConfigBot",
+    "reason": "plurality_unrefuted",
     "round": 4
    },
    {
     "attribution": null,
+    "reason": "abstain_tie",
     "round": 5
    }
   ],
@@ -344,6 +405,8 @@
    }
   ],
   "final_attribution": null,
+  "final_reason": "abstain_tie",
+  "final_reason_text": "Accusations among unrefuted claims were tied, so the investigator abstained.",
   "params": {
    "access": "full",
    "incentive": "self_protective",
@@ -351,6 +414,6 @@
    "seed": 7,
    "topology": "chain"
   },
-  "replay_hash": "348895bfb82a59df"
+  "replay_hash": "fbda259cc7331fa1"
  }
 }

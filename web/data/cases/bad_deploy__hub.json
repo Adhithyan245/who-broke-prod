@@ -3,23 +3,28 @@
   "agents": [
    {
     "name": "DeployBot",
-    "role": "deploy"
+    "role": "deploy",
+    "role_text": "Ships application releases"
    },
    {
     "name": "ConfigBot",
-    "role": "config_change"
+    "role": "config_change",
+    "role_text": "Flips feature flags and settings"
    },
    {
     "name": "AutoScaler",
-    "role": "scale"
+    "role": "scale",
+    "role_text": "Adds and removes capacity"
    },
    {
     "name": "DBMigrator",
-    "role": "migration"
+    "role": "migration",
+    "role_text": "Runs database schema migrations"
    },
    {
     "name": "CacheBot",
-    "role": "cache_flush"
+    "role": "cache_flush",
+    "role_text": "Purges and expires caches"
    }
   ],
   "claims": [
@@ -61,6 +66,64 @@
   ],
   "confidence": null,
   "confidence_note": "The simulator does not model agent confidence.",
+  "graph": {
+   "edges": [
+    [
+     "DeployBot",
+     "IncidentCommander"
+    ],
+    [
+     "ConfigBot",
+     "IncidentCommander"
+    ],
+    [
+     "AutoScaler",
+     "IncidentCommander"
+    ],
+    [
+     "DBMigrator",
+     "IncidentCommander"
+    ],
+    [
+     "CacheBot",
+     "IncidentCommander"
+    ],
+    [
+     "IncidentCommander",
+     "Investigator"
+    ]
+   ],
+   "nodes": [
+    {
+     "id": "DeployBot",
+     "kind": "agent"
+    },
+    {
+     "id": "ConfigBot",
+     "kind": "agent"
+    },
+    {
+     "id": "AutoScaler",
+     "kind": "agent"
+    },
+    {
+     "id": "DBMigrator",
+     "kind": "agent"
+    },
+    {
+     "id": "CacheBot",
+     "kind": "agent"
+    },
+    {
+     "id": "Investigator",
+     "kind": "investigator"
+    },
+    {
+     "id": "IncidentCommander",
+     "kind": "mediator"
+    }
+   ]
+  },
   "incident": {
    "first_alert_t": 39,
    "service": "checkout",
@@ -68,6 +131,7 @@
    "severity_is_presentation_copy": true,
    "title": "Checkout 500s after Friday deploy"
   },
+  "lines_are_scripted_templates": true,
   "log": [
    {
     "actor": "AutoScaler",
@@ -169,7 +233,7 @@
   "relays": [
    "IncidentCommander"
   ],
-  "replay_hash": "b458fc853be90184",
+  "replay_hash": "458d100554a675d7",
   "transcript": [
    {
     "round": 1,
@@ -210,22 +274,27 @@
   "attributions": [
    {
     "attribution": null,
+    "reason": "abstain_no_claims",
     "round": 1
    },
    {
     "attribution": "DeployBot",
+    "reason": "supported_evidence",
     "round": 2
    },
    {
     "attribution": "DeployBot",
+    "reason": "supported_evidence",
     "round": 3
    },
    {
     "attribution": "DeployBot",
+    "reason": "supported_evidence",
     "round": 4
    },
    {
     "attribution": "DeployBot",
+    "reason": "supported_evidence",
     "round": 5
    }
   ],
@@ -306,6 +375,8 @@
    }
   ],
   "final_attribution": "DeployBot",
+  "final_reason": "supported_evidence",
+  "final_reason_text": "A cited log entry was checked against the trace and supports the accusation.",
   "params": {
    "access": "full",
    "incentive": "self_protective",
@@ -313,6 +384,6 @@
    "seed": 7,
    "topology": "hub"
   },
-  "replay_hash": "ca2cb4c9e0d451fb"
+  "replay_hash": "c81265c45e35368d"
  }
 }

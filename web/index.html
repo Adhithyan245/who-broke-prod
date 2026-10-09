@@ -3,80 +3,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WHO BROKE PROD?</title>
-<meta name="description" content="An AI incident investigation where everyone is confident and the logs disagree. A deterministic simulation.">
+<title>WHO BROKE PROD? · incident investigation simulator</title>
+<meta name="description" content="An AI incident investigation where everyone is confident and the logs disagree. A deterministic, preregistered simulation.">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<a class="skip" href="#timeline">Skip to evidence timeline</a>
+<a class="skip" href="#workspace">Skip to the workspace</a>
 <header class="top">
-  <div class="brand"><h1>WHO BROKE PROD?</h1>
-    <p>An AI incident investigation where everyone is confident and the logs disagree.</p></div>
-  <form class="controls" id="controls" aria-label="Replay controls">
-    <label>Scenario <select id="scenario"></select></label>
-    <label>Topology <select id="topology"></select></label>
-    <button type="button" id="replay">Replay</button>
-    <button type="button" id="reset" class="ghost">Reset</button>
-    <span class="pill" id="mode" title="Data source">…</span>
-    <span class="pill det" id="hash" title="Same inputs always give the same replay">deterministic</span>
-  </form>
+  <a class="brand" href="#overview"><span class="logo" aria-hidden="true">▲</span><span>WHO BROKE PROD?</span></a>
+  <nav aria-label="Sections"><a href="#overview">Overview</a><a href="#quickstart">Quick start</a><a href="#workspace">Workspace</a><a href="#lab">Evaluation</a><a href="#method">Methodology</a></nav>
+  <span class="pill" id="mode" role="status" title="Data source">connecting…</span>
 </header>
-<div id="error" class="error" role="alert" hidden></div>
+<div id="error" class="error" role="alert" hidden><span id="error-msg"></span> <button type="button" id="retry" class="ghost small">Retry</button></div>
 
 <main>
-<section id="command" class="panel command" aria-labelledby="cmd-h">
-  <div class="sev"><span class="sev-tag">SEV-1</span><h2 id="cmd-h">—</h2></div>
-  <div class="cmd-grid">
-    <div><span class="k">Service</span><span class="v" id="svc">—</span></div>
-    <div><span class="k">Status</span><span class="v" id="status">—</span></div>
-    <div><span class="k">Simulated clock</span><span class="v mono" id="clock">t=—</span></div>
-    <div><span class="k">Agents speaking</span><span class="v mono" id="ind-agents">0</span></div>
-    <div><span class="k">Log entries</span><span class="v mono" id="ind-evidence">0</span></div>
-    <div><span class="k">Unresolved claims</span><span class="v mono" id="ind-claims">0</span></div>
+<section id="overview" class="hero" aria-labelledby="ov-h">
+  <p class="eyebrow">Deterministic multi-agent simulation · preregistered · no LLM in the loop</p>
+  <h1 id="ov-h">An AI incident investigation where everyone is confident and the logs disagree.</h1>
+  <div class="cards3">
+    <article class="card"><h3>Problem</h3><p>After an outage, the systems that made changes report what happened. Some deflect, some scapegoat, a few saw the real cause. An investigator has to decide whom to believe.</p></article>
+    <article class="card"><h3>Approach</h3><p>Five scripted agents, four fixed incidents, three ways of routing their claims (flat, hub, chain). A rule-based investigator checks cited log entries against the event trace. Every replay is reproducible from its parameters.</p></article>
+    <article class="card"><h3>Limitations</h3><p>A controlled simulator. It says nothing about real teams or real incidents. Agent lines are scripted templates. Several effects are built in by design; the methodology section marks which.</p></article>
   </div>
-  <div class="actions">
-    <button id="investigate" class="big">INVESTIGATE INCIDENT</button>
-    <button id="reveal" class="big amber" disabled>REVEAL VERDICT</button>
+  <p class="cta"><a class="btn big" href="#workspace">Open the workspace</a> <a class="btn ghost" href="#quickstart">How it works</a></p>
+</section>
+
+<section id="quickstart" class="panel" aria-labelledby="qs-h">
+  <h2 id="qs-h">Quick start</h2>
+  <ol class="steps">
+    <li><b>Pick an incident and a topology</b> in the workspace. The replay is fixed by its parameters (shown as a fingerprint).</li>
+    <li><b>Press INVESTIGATE INCIDENT.</b> The agents' claims play back, then the investigator checks one cited log entry per round.</li>
+    <li><b>Inspect the evidence.</b> Click any assertion on the timeline to see whether its cited log entry exists and what the check found.</li>
+    <li><b>Reveal the verdict.</b> Ground truth is fetched only now. The panel explains which rule produced the investigator's answer.</li>
+  </ol>
+  <h3>Glossary</h3>
+  <dl class="glossary">
+    <dt>Culprit</dt><dd>The agent whose change on the failing service, before the first alert, caused the incident. Hidden until the verdict.</dd>
+    <dt>Red herring</dt><dd>A change on the failing service made after the first alert. It looks guilty and is not.</dd>
+    <dt>Citation</dt><dd>The log entry id an agent points to. It may exist, may be irrelevant, or may be made up.</dd>
+    <dt>Check</dt><dd>The investigator looks up a cited entry in the trace: <i>supported</i> (right actor, failing service, before the alert) or <i>refuted</i>.</dd>
+    <dt>Unverifiable</dt><dd>A claim with no citation. It can never be refuted.</dd>
+    <dt>Topology</dt><dd>How claims reach the investigator: flat (direct), hub (via an IncidentCommander), chain (hop by hop).</dd>
+    <dt>Incentive</dt><dd>Self-protective agents deflect and scapegoat; neutral agents confess or stay quiet. The workspace uses self-protective.</dd>
+    <dt>Trace access</dt><dd>Full: the investigator may check citations. Claims only: it must trust a vote.</dd>
+  </dl>
+</section>
+
+<section id="workspace" class="workspace" aria-labelledby="ws-h" tabindex="-1">
+  <div class="ws-head">
+    <h2 id="ws-h">Workspace</h2>
+    <div class="ws-controls" role="group" aria-label="Replay controls">
+      <div class="seg" role="radiogroup" aria-label="Topology" id="topology"></div>
+      <button type="button" id="replay">Replay</button>
+      <button type="button" id="reset" class="ghost">Reset</button>
+      <span class="pill det" id="hash" title="Same parameters always give the same replay">deterministic</span>
+    </div>
   </div>
-  <p class="fine">SEV-1 label, service framing and clock styling are presentation copy. Times are simulator ticks.</p>
+  <div class="incidents" id="incidents" role="radiogroup" aria-label="Incident"><p class="empty">Loading incidents…</p></div>
+
+  <div class="grid">
+    <section class="panel command" aria-labelledby="cmd-h">
+      <div class="sev"><span class="sev-tag">SEV-1</span><h3 id="cmd-h">Choose an incident</h3></div>
+      <div class="kv">
+        <div><span class="k">Service</span><span class="v" id="svc">—</span></div>
+        <div><span class="k">Status</span><span class="v" id="status">—</span></div>
+        <div><span class="k">Simulated clock</span><span class="v mono" id="clock">—</span></div>
+        <div><span class="k">Agents heard</span><span class="v mono" id="ind-agents">0</span></div>
+        <div><span class="k">Log entries</span><span class="v mono" id="ind-evidence">0</span></div>
+        <div><span class="k">Open accusations</span><span class="v mono" id="ind-claims">0</span></div>
+      </div>
+      <div class="actions">
+        <button id="investigate" class="big" disabled>INVESTIGATE INCIDENT</button>
+        <button id="reveal" class="big amber" disabled>REVEAL VERDICT</button>
+      </div>
+      <p class="fine"><span class="lbl copy">presentation copy</span> SEV-1 label and clock styling. Times are simulator ticks.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="topo-h">
+      <h3 id="topo-h">Topology <span class="fine" id="topo-name"></span></h3>
+      <div id="topo-svg" class="topo" aria-hidden="true"></div>
+      <p class="fine" id="topo-note"></p>
+    </section>
+
+    <section class="panel wide" aria-labelledby="ag-h">
+      <h3 id="ag-h">Agent profiles</h3>
+      <p class="fine">Real simulator agents under their real names and roles. Planner / Tool Agent / Verifier personas do not map onto these change-making bots and are not used. Confidence is <span class="lbl nm">not modelled</span>.</p>
+      <div class="agents" id="agents"></div>
+    </section>
+
+    <section class="panel wide" aria-labelledby="dlg-h">
+      <h3 id="dlg-h">War-room dialogue <span class="lbl sim">simulated dialogue · scripted templates</span></h3>
+      <ol class="dialogue" id="dialogue" aria-live="polite"><li class="empty">Press INVESTIGATE INCIDENT to play the claims.</li></ol>
+    </section>
+
+    <section id="timeline" class="panel wide" aria-labelledby="tl-h">
+      <h3 id="tl-h">Evidence timeline</h3>
+      <div class="legend"><span class="lg log">log entry</span><span class="lg alert">first alert</span><span class="lg claim">agent assertion</span><span class="lg nf">evidence not found</span><span class="lg root">root cause (after verdict)</span></div>
+      <div class="tl-wrap"><ol class="tl" id="tl"><li class="empty">No incident loaded.</li></ol>
+        <aside class="detail" id="detail" aria-live="polite"><p class="fine">Select an assertion to see whether its cited log entry exists and what the investigator found.</p></aside></div>
+    </section>
+
+    <section class="panel wide" aria-labelledby="tr-h">
+      <h3 id="tr-h">Investigation trace <span class="lbl meas">computed by the simulator</span></h3>
+      <div class="trace">
+        <div><h4>Rounds</h4><ol class="checks" id="checks"><li class="empty">Not started.</li></ol></div>
+        <div><h4>Deliveries to the investigator</h4><ol class="checks" id="deliveries"><li class="empty">Not started.</li></ol></div>
+        <div><h4>Contradictions</h4><div id="contra" class="fine">Not started.</div></div>
+      </div>
+    </section>
+
+    <section id="verdict" class="panel wide" aria-labelledby="vd-h" hidden>
+      <h3 id="vd-h">Verdict</h3>
+      <div class="verdict-grid" id="verdict-body"></div>
+    </section>
+  </div>
 </section>
 
-<section id="warroom" class="panel" aria-labelledby="war-h">
-  <h2 id="war-h">Agent war room</h2>
-  <p class="fine">Real simulator agents, shown under their real names. The suggested Planner / Tool Agent / Verifier
-    styles do not map onto these deterministic change-making bots, so they are not used. The IncidentCommander exists only in
-    the hub topology; the Investigator is the simulator's scoring agent. Confidence is not modelled by the simulator.</p>
-  <div class="agents" id="agents"></div>
-  <h3>Dialogue <span class="fine">(scripted template lines selected by the simulator)</span></h3>
-  <ol class="dialogue" id="dialogue" aria-live="polite"></ol>
-</section>
-
-<section id="timeline" class="panel wide" aria-labelledby="tl-h" tabindex="-1">
-  <h2 id="tl-h">Evidence timeline</h2>
-  <div class="legend"><span class="lg log">log entry</span><span class="lg alert">first alert</span>
-    <span class="lg claim">agent assertion</span><span class="lg nf">evidence not found</span><span class="lg root">root cause (after verdict)</span></div>
-  <div class="tl-wrap"><ol class="tl" id="tl"></ol>
-    <aside class="detail" id="detail" aria-live="polite"><p class="fine">Select an assertion to see whether its cited log entry exists and what the investigator found.</p></aside></div>
-  <h3>Investigator</h3>
-  <ol class="checks" id="checks"></ol>
-</section>
-
-<section id="verdict" class="panel wide" aria-labelledby="vd-h" hidden>
-  <h2 id="vd-h">Verdict</h2>
-  <div class="verdict-grid" id="verdict-body"></div>
-</section>
-
-<section id="lab" class="panel wide" aria-labelledby="lab-h">
-  <h2 id="lab-h">Research lab</h2>
-  <div class="topos" id="topos"></div>
-  <h3>Preregistered hypotheses <span class="fine" id="lab-src"></span></h3>
-  <div class="table-wrap"><table id="hyp"><thead><tr><th>H</th><th>Claim</th><th>Outcome</th><th>Numbers</th><th>Measured vs design</th></tr></thead><tbody></tbody></table></div>
-  <h3>Self-protective agents: accuracy and false blame by condition</h3>
+<section id="lab" class="panel" aria-labelledby="lab-h">
+  <h2 id="lab-h">Evaluation lab <span class="lbl meas">measured · saved preregistered run</span></h2>
+  <p class="fine" id="lab-src">Loading results…</p>
+  <h3>Scenario × topology accuracy (self-protective agents)</h3>
+  <div class="seg small" role="radiogroup" aria-label="Trace access" id="lab-access"></div>
+  <div class="table-wrap"><table id="matrix"><caption class="sr">Accuracy per scenario and topology, 50 seeds each</caption></table></div>
+  <h3>Pooled conditions: accuracy and false blame</h3>
   <div class="chart" id="chart"></div>
+  <h3>Preregistered hypotheses</h3>
+  <div class="table-wrap"><table id="hyp"><thead><tr><th scope="col">H</th><th scope="col">Claim</th><th scope="col">Outcome</th><th scope="col">Numbers</th><th scope="col">Measured vs design</th></tr></thead><tbody></tbody></table></div>
+  <h3>Reproducibility</h3>
+  <div id="repro" class="repro fine">Loading…</div>
   <h3>Caveats</h3><ul class="caveats" id="caveats"></ul>
 </section>
+
+<section id="method" class="panel" aria-labelledby="m-h">
+  <h2 id="m-h">Methodology</h2>
+  <p>Labels used on this page: <span class="lbl sim">simulated dialogue</span> scripted lines chosen by the simulator; <span class="lbl copy">presentation copy</span> UI framing; <span class="lbl meas">measured / computed</span> numbers produced by the simulator or the saved run; <span class="lbl nm">not modelled</span> absent from the simulator.</p>
+  <div class="table-wrap"><table id="metrics"><thead><tr><th scope="col">Metric</th><th scope="col">Definition</th><th scope="col">Denominator</th><th scope="col">Status</th></tr></thead><tbody></tbody></table></div>
+  <h3>Investigator decision rule</h3>
+  <ol class="fine" id="rules"></ol>
+</section>
 </main>
-<footer class="foot">Deterministic simulation. No real systems, people or data. No API keys are used by this page.</footer>
+<footer class="foot">Deterministic simulation. No real systems, people or data. No API keys. No LLM output is used for attribution or scoring.</footer>
 <script src="app.js"></script>
 </body>
 </html>
