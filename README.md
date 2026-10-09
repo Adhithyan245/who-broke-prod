@@ -46,7 +46,8 @@ whobrokeprod/
   evaluation/stats.py          Wilson interval, exact sign test (stdlib)
   evaluation/experiment.py     the preregistered grid and H1-H6 decision rules
   presentation/cli.py          `demo` and `experiment` commands
-tests/test_core.py             deterministic pytest suite (no network)
+tests/                         deterministic pytest suites (no network)
+web/                           static frontend + offline bundle (web/data)
 HYPOTHESES.md                  preregistration
 results/                       runs.csv, summary.json (written by `experiment`)
 ```
@@ -61,6 +62,31 @@ uv venv -p 3.11 .venv && uv pip install -p .venv/bin/python pytest   # stdlib-on
 # optional, costs an API call, never used for attribution or experiments:
 XAI_API_KEY=... .venv/bin/python -m whobrokeprod demo --grok
 ```
+
+## Web demo
+
+A visualisation layer over the same simulator. JavaScript only renders; all claims, checks,
+attributions and verdicts come from `whobrokeprod` (`presentation/replay.py`).
+
+```bash
+.venv/bin/python -m whobrokeprod.presentation.server --port 8000   # live mode: http://127.0.0.1:8000
+.venv/bin/python -m whobrokeprod.presentation.build_static          # rebuild web/data (offline bundle)
+python3 -m http.server -d web 8001                                  # offline/static mode, no Python API
+```
+
+- Endpoints: `/api/meta`, `/api/case`, `/api/investigate`, `/api/verdict` with
+  `scenario`, `topology` and optional `seed` (0..10000), `incentive`, `access`. Bad input returns HTTP 400
+  JSON. The UI uses the defaults (self-protective, full access, seed 7). `?autoplay=1` runs the whole sequence.
+- Reveal stages: `case` (incident, agents, log, claims, stances hidden) -> `investigate` (the
+  investigator's checks and per-claim evidence status) -> `verdict` (culprit, root cause, correctness).
+  Tests check that no ground-truth field appears before the verdict.
+- Offline mode: if `/api/meta` is unreachable the page loads `web/data/` (4 scenarios x 3 topologies).
+  **Limitation:** on a static host, `data/verdicts/*.json` are public URLs, so anyone can open a verdict early.
+  The claim lines are the simulator's scripted templates. SEV-1 framing, clock styling and corrective actions
+  are presentation copy and are labelled as such. The research lab reads `results/summary.json` (via
+  `web/data/research.json`) and does not rerun the experiment.
+- Deploy: `web/` is a self-contained static site (GitHub Pages, Netlify, etc.). `Dockerfile` runs live
+  mode on a container host (`PORT` env). No credentials are needed; the Grok narrator is not wired to the web.
 
 ## Where Grok fits
 

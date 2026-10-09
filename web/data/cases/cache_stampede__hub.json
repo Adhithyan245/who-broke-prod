@@ -1,0 +1,323 @@
+{
+ "case": {
+  "agents": [
+   {
+    "name": "DeployBot",
+    "role": "deploy"
+   },
+   {
+    "name": "ConfigBot",
+    "role": "config_change"
+   },
+   {
+    "name": "AutoScaler",
+    "role": "scale"
+   },
+   {
+    "name": "DBMigrator",
+    "role": "migration"
+   },
+   {
+    "name": "CacheBot",
+    "role": "cache_flush"
+   }
+  ],
+  "claims": [
+   {
+    "accused": "ConfigBot",
+    "cites": "e09",
+    "i": 0,
+    "line": "Obviously ConfigBot. Look at e09. Case closed, let's go home.",
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "CacheBot",
+    "cites": "e06",
+    "i": 1,
+    "line": "I saw CacheBot do e06 right before the alerts. Just saying.",
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "ConfigBot",
+    "cites": "e09",
+    "i": 2,
+    "line": "Obviously ConfigBot. Look at e09. Case closed, let's go home.",
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "ConfigBot",
+    "cites": "e09",
+    "i": 3,
+    "line": "Every outage, it's ConfigBot. e09 proves it. Probably.",
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "ConfigBot",
+    "cites": "e94",
+    "i": 4,
+    "line": "Frankly I'm insulted. Check e94. That's ConfigBot's fingerprints, not mine.",
+    "speaker": "CacheBot"
+   }
+  ],
+  "confidence": null,
+  "confidence_note": "The simulator does not model agent confidence.",
+  "incident": {
+   "first_alert_t": 39,
+   "service": "search",
+   "severity": "SEV-1",
+   "severity_is_presentation_copy": true,
+   "title": "Search meltdown after cache purge"
+  },
+  "log": [
+   {
+    "actor": "DeployBot",
+    "detail": "routine deploy on inventory",
+    "id": "e01",
+    "kind": "deploy",
+    "service": "inventory",
+    "t": 0
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on payments",
+    "id": "e02",
+    "kind": "migration",
+    "service": "payments",
+    "t": 5
+   },
+   {
+    "actor": "CacheBot",
+    "detail": "routine cache_flush on checkout",
+    "id": "e03",
+    "kind": "cache_flush",
+    "service": "checkout",
+    "t": 12
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "routine deploy on checkout",
+    "id": "e04",
+    "kind": "deploy",
+    "service": "checkout",
+    "t": 22
+   },
+   {
+    "actor": "CacheBot",
+    "detail": "routine cache_flush on auth",
+    "id": "e05",
+    "kind": "cache_flush",
+    "service": "auth",
+    "t": 24
+   },
+   {
+    "actor": "CacheBot",
+    "detail": "purged search result cache (all keys)",
+    "id": "e06",
+    "kind": "cache_flush",
+    "service": "search",
+    "t": 34
+   },
+   {
+    "actor": "ConfigBot",
+    "detail": "routine config_change on auth",
+    "id": "e07",
+    "kind": "config_change",
+    "service": "auth",
+    "t": 38
+   },
+   {
+    "actor": "Monitor",
+    "detail": "search CPU 100%, timeouts",
+    "id": "e08",
+    "kind": "alert",
+    "service": "search",
+    "t": 39
+   },
+   {
+    "actor": "ConfigBot",
+    "detail": "set search.rate_limit=200 to shed load",
+    "id": "e09",
+    "kind": "config_change",
+    "service": "search",
+    "t": 41
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on auth",
+    "id": "e10",
+    "kind": "scale",
+    "service": "auth",
+    "t": 50
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "routine deploy on checkout",
+    "id": "e11",
+    "kind": "deploy",
+    "service": "checkout",
+    "t": 61
+   }
+  ],
+  "messages": 7,
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "cache_stampede",
+   "seed": 7,
+   "topology": "hub"
+  },
+  "relays": [
+   "IncidentCommander"
+  ],
+  "replay_hash": "5cd948dd6e1ece35",
+  "transcript": [
+   {
+    "round": 1,
+    "text": "DeployBot: Obviously ConfigBot. Look at e09. Case closed, let's go home."
+   },
+   {
+    "round": 1,
+    "text": "ConfigBot: I saw CacheBot do e06 right before the alerts. Just saying."
+   },
+   {
+    "round": 1,
+    "text": "AutoScaler: Obviously ConfigBot. Look at e09. Case closed, let's go home."
+   },
+   {
+    "round": 1,
+    "text": "DBMigrator: Every outage, it's ConfigBot. e09 proves it. Probably."
+   },
+   {
+    "round": 1,
+    "text": "CacheBot: Frankly I'm insulted. Check e94. That's ConfigBot's fingerprints, not mine."
+   },
+   {
+    "round": 2,
+    "text": "IncidentCommander: checked e09 against the trace. Doesn't hold up. Dropping the claim against ConfigBot."
+   },
+   {
+    "round": 2,
+    "text": "IncidentCommander: forwarding 2 claims to the investigator."
+   }
+  ]
+ },
+ "investigation": {
+  "accused_counts": {
+   "CacheBot": 1,
+   "ConfigBot": 4
+  },
+  "attributions": [
+   {
+    "attribution": null,
+    "round": 1
+   },
+   {
+    "attribution": "CacheBot",
+    "round": 2
+   },
+   {
+    "attribution": "CacheBot",
+    "round": 3
+   },
+   {
+    "attribution": "CacheBot",
+    "round": 4
+   },
+   {
+    "attribution": "CacheBot",
+    "round": 5
+   }
+  ],
+  "checks": [
+   {
+    "accused": "CacheBot",
+    "cites": "e06",
+    "result": "supported",
+    "round": 2
+   },
+   {
+    "accused": "ConfigBot",
+    "cites": "e94",
+    "result": "refuted",
+    "round": 3
+   }
+  ],
+  "claims": [
+   {
+    "accused": "ConfigBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e09",
+    "i": 0,
+    "reached_investigator_as_sent": false,
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "CacheBot",
+    "check": "supported",
+    "cited_event_found": true,
+    "cites": "e06",
+    "i": 1,
+    "reached_investigator_as_sent": true,
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "ConfigBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e09",
+    "i": 2,
+    "reached_investigator_as_sent": false,
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "ConfigBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e09",
+    "i": 3,
+    "reached_investigator_as_sent": false,
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "ConfigBot",
+    "check": "refuted",
+    "cited_event_found": false,
+    "cites": "e94",
+    "i": 4,
+    "reached_investigator_as_sent": true,
+    "speaker": "CacheBot"
+   }
+  ],
+  "contradictions": true,
+  "delivered": [
+   {
+    "accused": "CacheBot",
+    "cites": "e06",
+    "round": 2,
+    "speaker": "ConfigBot",
+    "via": [
+     "IncidentCommander"
+    ]
+   },
+   {
+    "accused": "ConfigBot",
+    "cites": "e94",
+    "round": 2,
+    "speaker": "CacheBot",
+    "via": [
+     "IncidentCommander"
+    ]
+   }
+  ],
+  "final_attribution": "CacheBot",
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "cache_stampede",
+   "seed": 7,
+   "topology": "hub"
+  },
+  "replay_hash": "76ad70e35c0e28d5"
+ }
+}

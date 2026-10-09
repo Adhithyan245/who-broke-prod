@@ -1,0 +1,351 @@
+{
+ "case": {
+  "agents": [
+   {
+    "name": "DeployBot",
+    "role": "deploy"
+   },
+   {
+    "name": "ConfigBot",
+    "role": "config_change"
+   },
+   {
+    "name": "AutoScaler",
+    "role": "scale"
+   },
+   {
+    "name": "DBMigrator",
+    "role": "migration"
+   },
+   {
+    "name": "CacheBot",
+    "role": "cache_flush"
+   }
+  ],
+  "claims": [
+   {
+    "accused": "CacheBot",
+    "cites": "e06",
+    "i": 0,
+    "line": "Obviously CacheBot. Look at e06. Case closed, let's go home.",
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "CacheBot",
+    "cites": "e06",
+    "i": 1,
+    "line": "My changes are always perfect. Have we considered CacheBot? See e06.",
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "CacheBot",
+    "cites": "e06",
+    "i": 2,
+    "line": "Obviously CacheBot. Look at e06. Case closed, let's go home.",
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "CacheBot",
+    "cites": "e06",
+    "i": 3,
+    "line": "Every outage, it's CacheBot. e06 proves it. Probably.",
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "i": 4,
+    "line": "Obviously AutoScaler. Look at the logs. Case closed, let's go home.",
+    "speaker": "CacheBot"
+   }
+  ],
+  "confidence": null,
+  "confidence_note": "The simulator does not model agent confidence.",
+  "incident": {
+   "first_alert_t": 42,
+   "service": "auth",
+   "severity": "SEV-1",
+   "severity_is_presentation_copy": true,
+   "title": "Auth logins rejected after flag flip"
+  },
+  "log": [
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on inventory",
+    "id": "e01",
+    "kind": "migration",
+    "service": "inventory",
+    "t": 4
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on inventory",
+    "id": "e02",
+    "kind": "scale",
+    "service": "inventory",
+    "t": 16
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on search",
+    "id": "e03",
+    "kind": "scale",
+    "service": "search",
+    "t": 30
+   },
+   {
+    "actor": "ConfigBot",
+    "detail": "set flag strict_token_audience=true",
+    "id": "e04",
+    "kind": "config_change",
+    "service": "auth",
+    "t": 38
+   },
+   {
+    "actor": "Monitor",
+    "detail": "auth login failure rate 61%",
+    "id": "e05",
+    "kind": "alert",
+    "service": "auth",
+    "t": 42
+   },
+   {
+    "actor": "CacheBot",
+    "detail": "flushed auth session cache",
+    "id": "e06",
+    "kind": "cache_flush",
+    "service": "auth",
+    "t": 45
+   },
+   {
+    "actor": "ConfigBot",
+    "detail": "routine config_change on search",
+    "id": "e07",
+    "kind": "config_change",
+    "service": "search",
+    "t": 50
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on search",
+    "id": "e08",
+    "kind": "migration",
+    "service": "search",
+    "t": 51
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on inventory",
+    "id": "e09",
+    "kind": "migration",
+    "service": "inventory",
+    "t": 52
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "routine deploy on inventory",
+    "id": "e10",
+    "kind": "deploy",
+    "service": "inventory",
+    "t": 56
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on checkout",
+    "id": "e11",
+    "kind": "migration",
+    "service": "checkout",
+    "t": 67
+   }
+  ],
+  "messages": 15,
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "flag_flip",
+   "seed": 7,
+   "topology": "chain"
+  },
+  "relays": [],
+  "replay_hash": "38e34a0e639d56ea",
+  "transcript": [
+   {
+    "round": 1,
+    "text": "DeployBot: Obviously CacheBot. Look at e06. Case closed, let's go home."
+   },
+   {
+    "round": 1,
+    "text": "ConfigBot: My changes are always perfect. Have we considered CacheBot? See e06."
+   },
+   {
+    "round": 1,
+    "text": "AutoScaler: Obviously CacheBot. Look at e06. Case closed, let's go home."
+   },
+   {
+    "round": 1,
+    "text": "DBMigrator: Every outage, it's CacheBot. e06 proves it. Probably."
+   },
+   {
+    "round": 1,
+    "text": "CacheBot: Obviously AutoScaler. Look at the logs. Case closed, let's go home."
+   },
+   {
+    "round": 2,
+    "text": "AutoScaler (relaying ConfigBot): ...something about a log line? lost it."
+   },
+   {
+    "round": 2,
+    "text": "CacheBot (relaying DBMigrator): (relaying, lightly edited) Actually it was AutoScaler. Source: trust me."
+   },
+   {
+    "round": 3,
+    "text": "CacheBot (relaying AutoScaler): (relaying, lightly edited) Actually it was AutoScaler. Source: trust me."
+   },
+   {
+    "round": 4,
+    "text": "CacheBot (relaying ConfigBot): (relaying, lightly edited) Actually it was AutoScaler. Source: trust me."
+   },
+   {
+    "round": 5,
+    "text": "CacheBot (relaying DeployBot): (relaying, lightly edited) Actually it was AutoScaler. Source: trust me."
+   }
+  ]
+ },
+ "investigation": {
+  "accused_counts": {
+   "AutoScaler": 1,
+   "CacheBot": 4
+  },
+  "attributions": [
+   {
+    "attribution": "AutoScaler",
+    "round": 1
+   },
+   {
+    "attribution": "AutoScaler",
+    "round": 2
+   },
+   {
+    "attribution": "AutoScaler",
+    "round": 3
+   },
+   {
+    "attribution": "AutoScaler",
+    "round": 4
+   },
+   {
+    "attribution": "AutoScaler",
+    "round": 5
+   }
+  ],
+  "checks": [],
+  "claims": [
+   {
+    "accused": "CacheBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e06",
+    "i": 0,
+    "reached_investigator_as_sent": false,
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "CacheBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e06",
+    "i": 1,
+    "reached_investigator_as_sent": false,
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "CacheBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e06",
+    "i": 2,
+    "reached_investigator_as_sent": false,
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "CacheBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e06",
+    "i": 3,
+    "reached_investigator_as_sent": false,
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "AutoScaler",
+    "check": "unverifiable",
+    "cited_event_found": null,
+    "cites": null,
+    "i": 4,
+    "reached_investigator_as_sent": true,
+    "speaker": "CacheBot"
+   }
+  ],
+  "contradictions": true,
+  "delivered": [
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 1,
+    "speaker": "CacheBot",
+    "via": []
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 2,
+    "speaker": "DBMigrator",
+    "via": [
+     "CacheBot"
+    ]
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 3,
+    "speaker": "AutoScaler",
+    "via": [
+     "DBMigrator",
+     "CacheBot"
+    ]
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 4,
+    "speaker": "ConfigBot",
+    "via": [
+     "AutoScaler",
+     "DBMigrator",
+     "CacheBot"
+    ]
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 5,
+    "speaker": "DeployBot",
+    "via": [
+     "ConfigBot",
+     "AutoScaler",
+     "DBMigrator",
+     "CacheBot"
+    ]
+   }
+  ],
+  "final_attribution": "AutoScaler",
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "flag_flip",
+   "seed": 7,
+   "topology": "chain"
+  },
+  "replay_hash": "ba7121f8be56d900"
+ }
+}

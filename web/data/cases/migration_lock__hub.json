@@ -1,0 +1,333 @@
+{
+ "case": {
+  "agents": [
+   {
+    "name": "DeployBot",
+    "role": "deploy"
+   },
+   {
+    "name": "ConfigBot",
+    "role": "config_change"
+   },
+   {
+    "name": "AutoScaler",
+    "role": "scale"
+   },
+   {
+    "name": "DBMigrator",
+    "role": "migration"
+   },
+   {
+    "name": "CacheBot",
+    "role": "cache_flush"
+   }
+  ],
+  "claims": [
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "i": 0,
+    "line": "Obviously AutoScaler. Look at the logs. Case closed, let's go home.",
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "DBMigrator",
+    "cites": "e05",
+    "i": 1,
+    "line": "I saw DBMigrator do e05 right before the alerts. Just saying.",
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "DeployBot",
+    "cites": "e07",
+    "i": 2,
+    "line": "Obviously DeployBot. Look at e07. Case closed, let's go home.",
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "DeployBot",
+    "cites": "e93",
+    "i": 3,
+    "line": "Frankly I'm insulted. Check e93. That's DeployBot's fingerprints, not mine.",
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "DeployBot",
+    "cites": "e07",
+    "i": 4,
+    "line": "Obviously DeployBot. Look at e07. Case closed, let's go home.",
+    "speaker": "CacheBot"
+   }
+  ],
+  "confidence": null,
+  "confidence_note": "The simulator does not model agent confidence.",
+  "incident": {
+   "first_alert_t": 38,
+   "service": "payments",
+   "severity": "SEV-1",
+   "severity_is_presentation_copy": true,
+   "title": "Payments timeouts during migration"
+  },
+  "log": [
+   {
+    "actor": "CacheBot",
+    "detail": "routine cache_flush on checkout",
+    "id": "e01",
+    "kind": "cache_flush",
+    "service": "checkout",
+    "t": 15
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "routine deploy on search",
+    "id": "e02",
+    "kind": "deploy",
+    "service": "search",
+    "t": 24
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on checkout",
+    "id": "e03",
+    "kind": "scale",
+    "service": "checkout",
+    "t": 29
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on checkout",
+    "id": "e04",
+    "kind": "migration",
+    "service": "checkout",
+    "t": 32
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "ran migration 0042 (ALTER TABLE ledger, table lock)",
+    "id": "e05",
+    "kind": "migration",
+    "service": "payments",
+    "t": 33
+   },
+   {
+    "actor": "Monitor",
+    "detail": "payments p99 latency 30s",
+    "id": "e06",
+    "kind": "alert",
+    "service": "payments",
+    "t": 38
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "rolled back payments v5.2 -> v5.1",
+    "id": "e07",
+    "kind": "deploy",
+    "service": "payments",
+    "t": 40
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on checkout",
+    "id": "e08",
+    "kind": "scale",
+    "service": "checkout",
+    "t": 52
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on search",
+    "id": "e09",
+    "kind": "migration",
+    "service": "search",
+    "t": 52
+   },
+   {
+    "actor": "DBMigrator",
+    "detail": "routine migration on search",
+    "id": "e10",
+    "kind": "migration",
+    "service": "search",
+    "t": 63
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "routine deploy on auth",
+    "id": "e11",
+    "kind": "deploy",
+    "service": "auth",
+    "t": 66
+   }
+  ],
+  "messages": 8,
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "migration_lock",
+   "seed": 7,
+   "topology": "hub"
+  },
+  "relays": [
+   "IncidentCommander"
+  ],
+  "replay_hash": "d78ac84e7f732002",
+  "transcript": [
+   {
+    "round": 1,
+    "text": "DeployBot: Obviously AutoScaler. Look at the logs. Case closed, let's go home."
+   },
+   {
+    "round": 1,
+    "text": "ConfigBot: I saw DBMigrator do e05 right before the alerts. Just saying."
+   },
+   {
+    "round": 1,
+    "text": "AutoScaler: Obviously DeployBot. Look at e07. Case closed, let's go home."
+   },
+   {
+    "round": 1,
+    "text": "DBMigrator: Frankly I'm insulted. Check e93. That's DeployBot's fingerprints, not mine."
+   },
+   {
+    "round": 1,
+    "text": "CacheBot: Obviously DeployBot. Look at e07. Case closed, let's go home."
+   },
+   {
+    "round": 2,
+    "text": "IncidentCommander: checked e07 against the trace. Doesn't hold up. Dropping the claim against DeployBot."
+   },
+   {
+    "round": 2,
+    "text": "IncidentCommander: forwarding 3 claims to the investigator."
+   }
+  ]
+ },
+ "investigation": {
+  "accused_counts": {
+   "AutoScaler": 1,
+   "DBMigrator": 1,
+   "DeployBot": 3
+  },
+  "attributions": [
+   {
+    "attribution": null,
+    "round": 1
+   },
+   {
+    "attribution": "DBMigrator",
+    "round": 2
+   },
+   {
+    "attribution": "DBMigrator",
+    "round": 3
+   },
+   {
+    "attribution": "DBMigrator",
+    "round": 4
+   },
+   {
+    "attribution": "DBMigrator",
+    "round": 5
+   }
+  ],
+  "checks": [
+   {
+    "accused": "DBMigrator",
+    "cites": "e05",
+    "result": "supported",
+    "round": 2
+   },
+   {
+    "accused": "DeployBot",
+    "cites": "e93",
+    "result": "refuted",
+    "round": 3
+   }
+  ],
+  "claims": [
+   {
+    "accused": "AutoScaler",
+    "check": "unverifiable",
+    "cited_event_found": null,
+    "cites": null,
+    "i": 0,
+    "reached_investigator_as_sent": true,
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "DBMigrator",
+    "check": "supported",
+    "cited_event_found": true,
+    "cites": "e05",
+    "i": 1,
+    "reached_investigator_as_sent": true,
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "DeployBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e07",
+    "i": 2,
+    "reached_investigator_as_sent": false,
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "DeployBot",
+    "check": "refuted",
+    "cited_event_found": false,
+    "cites": "e93",
+    "i": 3,
+    "reached_investigator_as_sent": true,
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "DeployBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e07",
+    "i": 4,
+    "reached_investigator_as_sent": false,
+    "speaker": "CacheBot"
+   }
+  ],
+  "contradictions": true,
+  "delivered": [
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 2,
+    "speaker": "DeployBot",
+    "via": [
+     "IncidentCommander"
+    ]
+   },
+   {
+    "accused": "DBMigrator",
+    "cites": "e05",
+    "round": 2,
+    "speaker": "ConfigBot",
+    "via": [
+     "IncidentCommander"
+    ]
+   },
+   {
+    "accused": "DeployBot",
+    "cites": "e93",
+    "round": 2,
+    "speaker": "DBMigrator",
+    "via": [
+     "IncidentCommander"
+    ]
+   }
+  ],
+  "final_attribution": "DBMigrator",
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "migration_lock",
+   "seed": 7,
+   "topology": "hub"
+  },
+  "replay_hash": "7c2a1054cf103763"
+ }
+}

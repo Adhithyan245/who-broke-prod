@@ -1,0 +1,355 @@
+{
+ "case": {
+  "agents": [
+   {
+    "name": "DeployBot",
+    "role": "deploy"
+   },
+   {
+    "name": "ConfigBot",
+    "role": "config_change"
+   },
+   {
+    "name": "AutoScaler",
+    "role": "scale"
+   },
+   {
+    "name": "DBMigrator",
+    "role": "migration"
+   },
+   {
+    "name": "CacheBot",
+    "role": "cache_flush"
+   }
+  ],
+  "claims": [
+   {
+    "accused": "AutoScaler",
+    "cites": "e08",
+    "i": 0,
+    "line": "Frankly I'm insulted. Check e08. That's AutoScaler's fingerprints, not mine.",
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "DeployBot",
+    "cites": "e06",
+    "i": 1,
+    "line": "I saw DeployBot do e06 right before the alerts. Just saying.",
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "CacheBot",
+    "cites": null,
+    "i": 2,
+    "line": "Obviously CacheBot. Look at the logs. Case closed, let's go home.",
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": "e08",
+    "i": 3,
+    "line": "Every outage, it's AutoScaler. e08 proves it. Probably.",
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": "e08",
+    "i": 4,
+    "line": "Obviously AutoScaler. Look at e08. Case closed, let's go home.",
+    "speaker": "CacheBot"
+   }
+  ],
+  "confidence": null,
+  "confidence_note": "The simulator does not model agent confidence.",
+  "incident": {
+   "first_alert_t": 39,
+   "service": "checkout",
+   "severity": "SEV-1",
+   "severity_is_presentation_copy": true,
+   "title": "Checkout 500s after Friday deploy"
+  },
+  "log": [
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on inventory",
+    "id": "e01",
+    "kind": "scale",
+    "service": "inventory",
+    "t": 6
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on inventory",
+    "id": "e02",
+    "kind": "scale",
+    "service": "inventory",
+    "t": 9
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on auth",
+    "id": "e03",
+    "kind": "scale",
+    "service": "auth",
+    "t": 20
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on inventory",
+    "id": "e04",
+    "kind": "scale",
+    "service": "inventory",
+    "t": 27
+   },
+   {
+    "actor": "CacheBot",
+    "detail": "routine cache_flush on auth",
+    "id": "e05",
+    "kind": "cache_flush",
+    "service": "auth",
+    "t": 28
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "rolled out checkout v2.31 (null-pointer in tax calc)",
+    "id": "e06",
+    "kind": "deploy",
+    "service": "checkout",
+    "t": 35
+   },
+   {
+    "actor": "Monitor",
+    "detail": "checkout 5xx rate 38%",
+    "id": "e07",
+    "kind": "alert",
+    "service": "checkout",
+    "t": 39
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "scaled checkout 4 -> 12 pods in response to load",
+    "id": "e08",
+    "kind": "scale",
+    "service": "checkout",
+    "t": 43
+   },
+   {
+    "actor": "AutoScaler",
+    "detail": "routine scale on auth",
+    "id": "e09",
+    "kind": "scale",
+    "service": "auth",
+    "t": 60
+   },
+   {
+    "actor": "DeployBot",
+    "detail": "routine deploy on inventory",
+    "id": "e10",
+    "kind": "deploy",
+    "service": "inventory",
+    "t": 68
+   },
+   {
+    "actor": "CacheBot",
+    "detail": "routine cache_flush on auth",
+    "id": "e11",
+    "kind": "cache_flush",
+    "service": "auth",
+    "t": 69
+   }
+  ],
+  "messages": 15,
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "bad_deploy",
+   "seed": 7,
+   "topology": "chain"
+  },
+  "relays": [],
+  "replay_hash": "a1c62be5c11b180c",
+  "transcript": [
+   {
+    "round": 1,
+    "text": "DeployBot: Frankly I'm insulted. Check e08. That's AutoScaler's fingerprints, not mine."
+   },
+   {
+    "round": 1,
+    "text": "ConfigBot: I saw DeployBot do e06 right before the alerts. Just saying."
+   },
+   {
+    "round": 1,
+    "text": "AutoScaler: Obviously CacheBot. Look at the logs. Case closed, let's go home."
+   },
+   {
+    "round": 1,
+    "text": "DBMigrator: Every outage, it's AutoScaler. e08 proves it. Probably."
+   },
+   {
+    "round": 1,
+    "text": "CacheBot: Obviously AutoScaler. Look at e08. Case closed, let's go home."
+   },
+   {
+    "round": 2,
+    "text": "AutoScaler (relaying ConfigBot): ...something about a log line? lost it."
+   },
+   {
+    "round": 3,
+    "text": "AutoScaler (relaying DeployBot): (relaying, lightly edited) Actually it was CacheBot. Source: trust me."
+   },
+   {
+    "round": 3,
+    "text": "CacheBot (relaying AutoScaler): (relaying, lightly edited) Actually it was AutoScaler. Source: trust me."
+   },
+   {
+    "round": 5,
+    "text": "CacheBot (relaying DeployBot): (relaying, lightly edited) Actually it was AutoScaler. Source: trust me."
+   }
+  ]
+ },
+ "investigation": {
+  "accused_counts": {
+   "AutoScaler": 3,
+   "CacheBot": 1,
+   "DeployBot": 1
+  },
+  "attributions": [
+   {
+    "attribution": null,
+    "round": 1
+   },
+   {
+    "attribution": null,
+    "round": 2
+   },
+   {
+    "attribution": "AutoScaler",
+    "round": 3
+   },
+   {
+    "attribution": null,
+    "round": 4
+   },
+   {
+    "attribution": "AutoScaler",
+    "round": 5
+   }
+  ],
+  "checks": [
+   {
+    "accused": "AutoScaler",
+    "cites": "e08",
+    "result": "refuted",
+    "round": 1
+   }
+  ],
+  "claims": [
+   {
+    "accused": "AutoScaler",
+    "check": "refuted",
+    "cited_event_found": true,
+    "cites": "e08",
+    "i": 0,
+    "reached_investigator_as_sent": true,
+    "speaker": "DeployBot"
+   },
+   {
+    "accused": "DeployBot",
+    "check": "unchecked",
+    "cited_event_found": true,
+    "cites": "e06",
+    "i": 1,
+    "reached_investigator_as_sent": false,
+    "speaker": "ConfigBot"
+   },
+   {
+    "accused": "CacheBot",
+    "check": "unverifiable",
+    "cited_event_found": null,
+    "cites": null,
+    "i": 2,
+    "reached_investigator_as_sent": false,
+    "speaker": "AutoScaler"
+   },
+   {
+    "accused": "AutoScaler",
+    "check": "refuted",
+    "cited_event_found": true,
+    "cites": "e08",
+    "i": 3,
+    "reached_investigator_as_sent": true,
+    "speaker": "DBMigrator"
+   },
+   {
+    "accused": "AutoScaler",
+    "check": "refuted",
+    "cited_event_found": true,
+    "cites": "e08",
+    "i": 4,
+    "reached_investigator_as_sent": true,
+    "speaker": "CacheBot"
+   }
+  ],
+  "contradictions": true,
+  "delivered": [
+   {
+    "accused": "AutoScaler",
+    "cites": "e08",
+    "round": 1,
+    "speaker": "CacheBot",
+    "via": []
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": "e08",
+    "round": 2,
+    "speaker": "DBMigrator",
+    "via": [
+     "CacheBot"
+    ]
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 3,
+    "speaker": "AutoScaler",
+    "via": [
+     "DBMigrator",
+     "CacheBot"
+    ]
+   },
+   {
+    "accused": "DeployBot",
+    "cites": null,
+    "round": 4,
+    "speaker": "ConfigBot",
+    "via": [
+     "AutoScaler",
+     "DBMigrator",
+     "CacheBot"
+    ]
+   },
+   {
+    "accused": "AutoScaler",
+    "cites": null,
+    "round": 5,
+    "speaker": "DeployBot",
+    "via": [
+     "ConfigBot",
+     "AutoScaler",
+     "DBMigrator",
+     "CacheBot"
+    ]
+   }
+  ],
+  "final_attribution": "AutoScaler",
+  "params": {
+   "access": "full",
+   "incentive": "self_protective",
+   "scenario": "bad_deploy",
+   "seed": 7,
+   "topology": "chain"
+  },
+  "replay_hash": "b430ef42fa99cf8a"
+ }
+}

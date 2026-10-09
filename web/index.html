@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHO BROKE PROD?</title>
+<meta name="description" content="An AI incident investigation where everyone is confident and the logs disagree. A deterministic simulation.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#timeline">Skip to evidence timeline</a>
+<header class="top">
+  <div class="brand"><h1>WHO BROKE PROD?</h1>
+    <p>An AI incident investigation where everyone is confident and the logs disagree.</p></div>
+  <form class="controls" id="controls" aria-label="Replay controls">
+    <label>Scenario <select id="scenario"></select></label>
+    <label>Topology <select id="topology"></select></label>
+    <button type="button" id="replay">Replay</button>
+    <button type="button" id="reset" class="ghost">Reset</button>
+    <span class="pill" id="mode" title="Data source">…</span>
+    <span class="pill det" id="hash" title="Same inputs always give the same replay">deterministic</span>
+  </form>
+</header>
+<div id="error" class="error" role="alert" hidden></div>
+
+<main>
+<section id="command" class="panel command" aria-labelledby="cmd-h">
+  <div class="sev"><span class="sev-tag">SEV-1</span><h2 id="cmd-h">—</h2></div>
+  <div class="cmd-grid">
+    <div><span class="k">Service</span><span class="v" id="svc">—</span></div>
+    <div><span class="k">Status</span><span class="v" id="status">—</span></div>
+    <div><span class="k">Simulated clock</span><span class="v mono" id="clock">t=—</span></div>
+    <div><span class="k">Agents speaking</span><span class="v mono" id="ind-agents">0</span></div>
+    <div><span class="k">Log entries</span><span class="v mono" id="ind-evidence">0</span></div>
+    <div><span class="k">Unresolved claims</span><span class="v mono" id="ind-claims">0</span></div>
+  </div>
+  <div class="actions">
+    <button id="investigate" class="big">INVESTIGATE INCIDENT</button>
+    <button id="reveal" class="big amber" disabled>REVEAL VERDICT</button>
+  </div>
+  <p class="fine">SEV-1 label, service framing and clock styling are presentation copy. Times are simulator ticks.</p>
+</section>
+
+<section id="warroom" class="panel" aria-labelledby="war-h">
+  <h2 id="war-h">Agent war room</h2>
+  <p class="fine">Real simulator agents, shown under their real names. The suggested Planner / Tool Agent / Verifier
+    styles do not map onto these deterministic change-making bots, so they are not used. The IncidentCommander exists only in
+    the hub topology; the Investigator is the simulator's scoring agent. Confidence is not modelled by the simulator.</p>
+  <div class="agents" id="agents"></div>
+  <h3>Dialogue <span class="fine">(scripted template lines selected by the simulator)</span></h3>
+  <ol class="dialogue" id="dialogue" aria-live="polite"></ol>
+</section>
+
+<section id="timeline" class="panel wide" aria-labelledby="tl-h" tabindex="-1">
+  <h2 id="tl-h">Evidence timeline</h2>
+  <div class="legend"><span class="lg log">log entry</span><span class="lg alert">first alert</span>
+    <span class="lg claim">agent assertion</span><span class="lg nf">evidence not found</span><span class="lg root">root cause (after verdict)</span></div>
+  <div class="tl-wrap"><ol class="tl" id="tl"></ol>
+    <aside class="detail" id="detail" aria-live="polite"><p class="fine">Select an assertion to see whether its cited log entry exists and what the investigator found.</p></aside></div>
+  <h3>Investigator</h3>
+  <ol class="checks" id="checks"></ol>
+</section>
+
+<section id="verdict" class="panel wide" aria-labelledby="vd-h" hidden>
+  <h2 id="vd-h">Verdict</h2>
+  <div class="verdict-grid" id="verdict-body"></div>
+</section>
+
+<section id="lab" class="panel wide" aria-labelledby="lab-h">
+  <h2 id="lab-h">Research lab</h2>
+  <div class="topos" id="topos"></div>
+  <h3>Preregistered hypotheses <span class="fine" id="lab-src"></span></h3>
+  <div class="table-wrap"><table id="hyp"><thead><tr><th>H</th><th>Claim</th><th>Outcome</th><th>Numbers</th><th>Measured vs design</th></tr></thead><tbody></tbody></table></div>
+  <h3>Self-protective agents: accuracy and false blame by condition</h3>
+  <div class="chart" id="chart"></div>
+  <h3>Caveats</h3><ul class="caveats" id="caveats"></ul>
+</section>
+</main>
+<footer class="foot">Deterministic simulation. No real systems, people or data. No API keys are used by this page.</footer>
+<script src="app.js"></script>
+</body>
+</html>
