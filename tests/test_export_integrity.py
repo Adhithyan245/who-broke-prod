@@ -216,3 +216,25 @@ def test_export_json_schema_keys():
     for k in ("fingerprints_sha256", "summary_matches_runs", "mismatches", "preregistration"):
         assert k in e["reproducibility"]
     assert set(e["integrity"]) >= {"ok", "errors", "error_count", "expected_runs", "rows_read", "valid_unique_runs"}
+
+
+@pytest.mark.parametrize("field", ["topology", "incentive", "access"])
+@pytest.mark.parametrize("value", [["flat"], {"x": 1}], ids=["list", "dict"])
+def test_unhashable_cell_identity_is_integrity_error(copy, monkeypatch, capsys, field, value):
+    s = json.loads((copy / "summary.json").read_text())
+    s["cells"][2][field] = value
+    (copy / "summary.json").write_text(json.dumps(s))
+    e = export(copy)
+    assert_fails(e, "summary_structure")
+    msg = " ".join(x["detail"] for x in e["integrity"]["errors"])
+    assert f"cells[2] has non-string identity field(s): {field}={type(value).__name__}" in msg
+    monkeypatch.setattr(server, "CFG", Config(results_dir=str(copy)))
+    for fmt in ("json", "csv"):
+        st, body, _ = server.handle_api("/api/export", f"format={fmt}", "rid")
+        assert st == 200
+    st, body, _ = server.handle_api("/api/export", "format=json", "rid")
+    assert body["reproducibility"]["summary_matches_runs"] is False
+    monkeypatch.setenv("WBP_RESULTS_DIR", str(copy))
+    assert cli.main(["export", "--format", "json", "--out", str(copy / "o.json")]) == 1
+    err = capsys.readouterr().err
+    assert "integrity check FAILED" in err and "Traceback" not in err

@@ -134,8 +134,9 @@ writes one JSON log line to stderr.
 - The full grid regenerates with `.venv/bin/python -m whobrokeprod experiment --out <dir>`. It was not
   rerun during the platform upgrade (only the 240-run sample), so write to a separate directory to compare.
 - **CI:** `.github/workflows/ci.yml` runs ruff, pytest and the bundle check on Python 3.11. Run
-  [37957574809](https://github.com/Adhithyan245/who-broke-prod/actions/runs/37957574809) passed on push of
-  this branch: ruff clean, pytest 67 passed, bundle fresh.
+  For commit `5577196`, CI run
+  [37958750366](https://github.com/Adhithyan245/who-broke-prod/actions/runs/37958750366) (push) succeeded,
+  and its log shows "All checks passed!" (ruff), "99 passed" (pytest) and "bundle is current".
 
 ## 8. Evaluation metrics and limitations
 

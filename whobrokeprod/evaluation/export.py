@@ -185,6 +185,11 @@ def validate_summary(summary, rows: list[dict], grid: dict | None = None) -> tup
         if not isinstance(c, dict) or any(k not in c for k in CELL_KEY + CELL_METRICS + ("n",)):
             errors.append(_e("summary_structure", f"cells[{idx}] is missing required keys"))
             continue
+        bad = [k for k in CELL_KEY if not isinstance(c[k], str)]
+        if bad:
+            types = ", ".join(f"{k}={type(c[k]).__name__}" for k in bad)
+            errors.append(_e("summary_structure", f"cells[{idx}] has non-string identity field(s): {types}"))
+            continue
         key = tuple(c[k] for k in CELL_KEY)
         if key not in expected_cells:
             errors.append(_e("summary_structure", f"cells[{idx}] {key} is not in the grid"))
