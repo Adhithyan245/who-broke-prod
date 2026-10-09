@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from ..agents.grok_narrator import narrate
+from ..evaluation import export as export_mod
 from ..evaluation.experiment import run_and_write, run_one
 from ..orchestration.topologies import TOPOLOGIES
 from ..simulation.scenarios import SCENARIO_NAMES, build_scenario
@@ -12,7 +14,7 @@ from ..simulation.scenarios import SCENARIO_NAMES, build_scenario
 
 def demo(args) -> int:
     sc = build_scenario(args.scenario)
-    claims, d, atts, log, s = run_one(sc, args.topology, args.incentive, args.access, args.seed)
+    _claims, d, atts, log, s = run_one(sc, args.topology, args.incentive, args.access, args.seed)
     print(f"=== WHO BROKE PROD? :: {sc.title} ===")
     print(f"topology={args.topology} incentive={args.incentive} access={args.access} seed={args.seed}\n")
     print("--- The blame round ---")
@@ -55,6 +57,23 @@ def experiment(args) -> int:
     return 0
 
 
+def export(args) -> int:
+    try:
+        data = export_mod.build_export()
+    except export_mod.MissingResults as e:
+        print(f"error: saved results missing: {e}", file=sys.stderr)
+        return 2
+    text = export_mod.to_csv(data) if args.format == "csv" else json.dumps(data, indent=1, sort_keys=True) + "\n"
+    if args.out == "-":
+        sys.stdout.write(text)
+    else:
+        with open(args.out, "w") as fh:
+            fh.write(text)
+        print(f"wrote {args.out} ({data['run_count']} runs; summary_matches_runs="
+              f"{data['reproducibility']['summary_matches_runs']})", file=sys.stderr)
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="whobrokeprod")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -67,8 +86,11 @@ def main(argv=None) -> int:
     d.add_argument("--grok", action="store_true", help="optional narration; needs XAI_API_KEY")
     e = sub.add_parser("experiment")
     e.add_argument("--out", default="results")
+    x = sub.add_parser("export", help="read-only export of the saved results (no rerun)")
+    x.add_argument("--format", choices=("json", "csv"), default="json")
+    x.add_argument("--out", default="-", help="file path, or - for stdout")
     a = p.parse_args(argv)
-    return demo(a) if a.cmd == "demo" else experiment(a)
+    return {"demo": demo, "experiment": experiment, "export": export}[a.cmd](a)
 
 
 if __name__ == "__main__":

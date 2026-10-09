@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 from whobrokeprod.agents import grok_narrator
