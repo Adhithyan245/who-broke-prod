@@ -60,7 +60,7 @@ Requires Python 3.11+. The runtime is stdlib-only; pytest and ruff are dev tools
 ```bash
 uv venv -p 3.11 .venv
 uv pip install -p .venv/bin/python -e ".[dev]"      # or: python3.11 -m pip install -e ".[dev]"
-.venv/bin/python -m pytest -q                       # 67 passed
+.venv/bin/python -m pytest -q                       # 99 passed
 .venv/bin/ruff check .                              # All checks passed!
 .venv/bin/python -m whobrokeprod demo --scenario bad_deploy --topology chain --seed 3
 WBP_PORT=8000 .venv/bin/python -m whobrokeprod.presentation.server   # http://127.0.0.1:8000 (live mode)
@@ -103,7 +103,7 @@ The full reference is in [docs/API.md](docs/API.md).
 | `GET /healthz` | status and checks for `web/index.html` and `results/summary.json` |
 | `GET /api/meta` | scenarios, topologies (note + graph), defaults, decision-reason texts |
 | `GET /api/case` · `/api/investigate` · `/api/verdict` | staged replay; `scenario`, `topology` required; `incentive`, `access`, `seed` (0–10000) optional; unknown parameters → 400 |
-| `GET /api/export?format=json\|csv` | read-only evaluation export (503 `results_unavailable` if results are missing) |
+| `GET /api/export?format=json\|csv` | read-only evaluation export (503 `results_unavailable` if results are missing, 503 `results_invalid` if unreadable; integrity status in `integrity`) |
 
 Errors use the shape `{"error": {"code", "message", "field"?}, "request_id"}`. Send `X-Request-ID`
 (`[A-Za-z0-9._-]{1,64}`) to have it echoed in the response; otherwise the server generates one. Each request
@@ -120,9 +120,11 @@ writes one JSON log line to stderr.
 
 ## 7. Testing and reproducibility
 
-- `.venv/bin/python -m pytest -q` runs 67 deterministic tests with no network access and no Grok calls. They
+- `.venv/bin/python -m pytest -q` runs 99 deterministic tests with no network access and no Grok calls. They
   cover simulator invariants, the H1–H6 decision rules, the staged reveal and no-ground-truth-leak checks,
   API validation and error shape, `/healthz`, the export (JSON, CSV, 503 when results are missing),
+  export integrity on temporary copies of the results (missing, duplicate and unexpected runs, malformed rows
+  and columns, metric and sample-count mismatches, inconsistent summary structure),
   request-id echo and JSON logs, config parsing, CLI export, and bundle freshness.
 - **Regression check:** seeds 0–4 of all 48 cells (240 runs) are rerun and compared with the saved `results/runs.csv`.
 - `.venv/bin/python -m whobrokeprod.presentation.build_static --check` exits 1 if `web/data` is stale.

@@ -255,6 +255,26 @@
    "supported": false
   }
  },
+ "integrity": {
+  "checks": [
+   "columns",
+   "row_count",
+   "row_values",
+   "grid_membership",
+   "duplicates",
+   "coverage",
+   "summary_structure",
+   "sample_count",
+   "aggregate_metrics"
+  ],
+  "error_count": 0,
+  "errors": [],
+  "errors_truncated": false,
+  "expected_runs": 2400,
+  "ok": true,
+  "rows_read": 2400,
+  "valid_unique_runs": 2400
+ },
  "per_scenario": [
   {
    "abstain": 0.0,

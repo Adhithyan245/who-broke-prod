@@ -69,6 +69,8 @@ def handle_api(path: str, query: str, request_id: str | None = None) -> tuple[in
     except export_mod.MissingResults:
         err = ApiError("results_unavailable", "saved results are missing on this server", 503,
                        request_id=request_id)
+    except export_mod.InvalidResults as e:
+        err = ApiError("results_invalid", f"saved results are unreadable: {e}", 503, request_id=request_id)
     except Exception as e:  # noqa: BLE001 - last-resort guard; never leak tracebacks to clients
         log("ERROR", "unhandled", request_id=request_id, path=path, error=type(e).__name__)
         err = ApiError("internal_error", "internal error", 500, request_id=request_id)

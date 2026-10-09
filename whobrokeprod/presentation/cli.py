@@ -63,6 +63,9 @@ def export(args) -> int:
     except export_mod.MissingResults as e:
         print(f"error: saved results missing: {e}", file=sys.stderr)
         return 2
+    except export_mod.InvalidResults as e:
+        print(f"error: saved results invalid: {e}", file=sys.stderr)
+        return 2
     text = export_mod.to_csv(data) if args.format == "csv" else json.dumps(data, indent=1, sort_keys=True) + "\n"
     if args.out == "-":
         sys.stdout.write(text)
@@ -71,6 +74,10 @@ def export(args) -> int:
             fh.write(text)
         print(f"wrote {args.out} ({data['run_count']} runs; summary_matches_runs="
               f"{data['reproducibility']['summary_matches_runs']})", file=sys.stderr)
+    integ = data["integrity"]
+    if not integ["ok"]:
+        print(f"integrity check FAILED: {integ['error_count']} error(s); first: {integ['errors'][:3]}", file=sys.stderr)
+        return 1
     return 0
 
 

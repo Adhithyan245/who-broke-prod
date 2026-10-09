@@ -37,6 +37,7 @@ One shape for every error:
 | 400 | `invalid_parameter` | missing/unknown/invalid parameter (`field` names it) |
 | 404 | `not_found` | unknown `/api/*` path |
 | 503 | `results_unavailable` | `/api/export` when `results/runs.csv` or `summary.json` is missing |
+| 503 | `results_invalid` | `/api/export` when `summary.json` is not valid JSON or `runs.csv` lacks required columns |
 | 500 | `internal_error` | unexpected exception (no traceback is returned; it is logged) |
 
 ## Request ids and logs
@@ -67,3 +68,17 @@ accuracy, false_blame, abstain, mean_steps, n_steps, mean_messages), `reproducib
 preregistration commit URLs), `raw_results` links, and `execution_timing: null` (the saved run was not timed).
 The CSV form contains the `per_scenario` table only. The CLI equivalent is
 `python -m whobrokeprod export --format json|csv [--out path]`.
+
+### Integrity
+
+`integrity` = `{ok, expected_runs, rows_read, valid_unique_runs, checks, error_count, errors[≤50],
+errors_truncated}`. The expected run count and grid (scenarios × topologies × incentives × access × seeds)
+come from `evaluation/experiment.py`, not a second copy. Checks: required/unexpected columns, row count,
+per-row values (integers, 0/1 outcome flags with exactly one set, `final` is an agent and empty exactly
+when abstaining, `correct` agrees with the scenario culprit, `steps` in 1..deadline and present exactly when
+correct, `messages` >= 0), grid membership, duplicate run identities
+(scenario, topology, incentive, access, seed), missing runs, summary structure (`n_runs`, the 12 cells, keys,
+`hypotheses`), per-cell sample counts, and the aggregate metrics. Each error is `{check, detail, line?}`.
+`reproducibility.summary_matches_runs` is `true` only when `integrity.ok` is `true`; `mismatches` keeps its
+previous meaning (aggregate-metric mismatches only). Integrity failures still return HTTP 200 with the
+export so the errors can be inspected; the CLI writes the export and exits 1.
