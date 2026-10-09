@@ -106,3 +106,27 @@ Smallest defensible integration (a separate PR into `contrib`, not done here):
 
 The lab's CI uses Python 3.12 and PyPhi needs 3.10+; this prototype targets 3.11 and is stdlib-only, so
 it runs under either.
+
+## Results of the preregistered run (2400 runs, `results/summary.json`)
+
+Self-protective cells (neutral cells are all accuracy 1.000, since the culprit confesses):
+
+| topology | access | accuracy [95% CI] | false blame | abstain | mean steps |
+|---|---|---|---:|---:|---:|
+| flat | full | 0.775 [0.712, 0.827] | 0.225 | 0.000 | 1.48 |
+| flat | claims_only | 0.130 [0.090, 0.184] | 0.760 | 0.110 | 1.00 |
+| hub | full | 0.775 [0.712, 0.827] | 0.225 | 0.000 | 2.07 |
+| hub | claims_only | 0.130 [0.090, 0.184] | 0.760 | 0.110 | 2.00 |
+| chain | full | 0.390 [0.325, 0.459] | 0.580 | 0.030 | 1.50 |
+| chain | claims_only | 0.030 [0.014, 0.064] | 0.970 | 0.000 | 1.33 |
+
+- H1 supported (accuracy 0.647 vs 0.097, diff 0.55, sign test p ~ 9e-100).
+- H2 supported (false blame 0.343 vs 0.830).
+- H3 refuted: the incentive raises false blame under full access too (+0.343, threshold 0.05). Cause in
+  this design: claims citing no event cannot be refuted, and the investigator falls back to a plurality
+  over them once cited scapegoat claims are refuted.
+- H4 refuted: chain (1.50) beat hub (2.07) on mean steps. Steps are averaged over successful runs only,
+  so chain's mean is selection-biased toward runs where a nearby witness reported early.
+- H5 supported (flat 0.775 vs chain 0.390, p ~ 1e-23).
+- H6 refuted: hub accuracy equals flat (diff 0, p = 1). The mediator's single check duplicates the check
+  the investigator makes first anyway, so it adds a round and no accuracy.
